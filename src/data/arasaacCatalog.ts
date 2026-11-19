@@ -336,14 +336,172 @@ export const ARASAAC_LOCAL_CATALOG: CatalogPictogramEntry[] = [
       <circle cx="68" cy="76" r="2" fill="#fef08a"/>
     `),
   },
+  {
+    id: 'cat-te',
+    label: 'Té / Infusión',
+    source: 'catalogo',
+    arasaacId: 2583,
+    keywords: ['te', 'té', 'infusion', 'infusión', 'desayuno', 'merienda', 'saquito', 'mate cocido'],
+    imageUrl: makePictoSvg(`
+      <path d="M28 50h46v22c0 12-10 22-23 22S28 84 28 72V50z" fill="#ffffff" stroke="#111827" stroke-width="4"/>
+      <path d="M32 54h38v16c0 9-8 16-19 16s-19-7-19-16V54z" fill="#d97706"/>
+      <path d="M74 56h10c5 0 9 4 9 9s-4 9-9 9H74" fill="none" stroke="#111827" stroke-width="4"/>
+      <path d="M56 50V32l12 6v14H56z" fill="#fef3c7" stroke="#111827" stroke-width="2.5"/>
+    `),
+  },
+  {
+    id: 'cat-mate',
+    label: 'Mate',
+    source: 'catalogo',
+    arasaacId: 28162,
+    keywords: ['mate', 'yerba', 'desayuno', 'merienda', 'infusion'],
+    imageUrl: makePictoSvg(`
+      <path d="M34 48h52c0 28-10 46-26 46S34 76 34 48z" fill="#78350f" stroke="#111827" stroke-width="4"/>
+      <rect x="36" y="42" width="48" height="8" rx="3" fill="#cbd5e1" stroke="#111827" stroke-width="3"/>
+      <path d="M64 46l18-24" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="48" cy="46" r="6" fill="#22c55e"/>
+    `),
+  },
+  {
+    id: 'cat-tostadas',
+    label: 'Tostadas / Mermelada',
+    source: 'catalogo',
+    arasaacId: 2595,
+    keywords: ['tostada', 'tostadas', 'pan', 'mermelada', 'manteca', 'desayuno', 'merienda', 'dulce'],
+    imageUrl: makePictoSvg(`
+      <path d="M28 42c0-10 12-18 32-18s32 8 32 18c0 4-2 8-5 10v38H33V52c-3-2-5-6-5-10z" fill="#f59e0b" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M40 52h40v28H40z" fill="#ef4444" stroke="#111827" stroke-width="2.5" rx="4"/>
+    `),
+  },
+  {
+    id: 'cat-jugo',
+    label: 'Jugo de naranja',
+    source: 'catalogo',
+    arasaacId: 2440,
+    keywords: ['jugo', 'naranja', 'exprimido', 'desayuno', 'merienda', 'bebida', 'citrico'],
+    imageUrl: makePictoSvg(`
+      <path d="M38 30h44l-6 64H44L38 30z" fill="#fef3c7" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M40 46h40l-4 46H44L40 46z" fill="#f97316" stroke="#111827" stroke-width="3"/>
+      <circle cx="80" cy="30" r="10" fill="#fb923c" stroke="#111827" stroke-width="3"/>
+    `),
+  },
+  {
+    id: 'cat-yogur',
+    label: 'Yogur / Granola',
+    source: 'catalogo',
+    arasaacId: 2616,
+    keywords: ['yogur', 'yogurt', 'granola', 'cereales', 'desayuno', 'merienda', 'lacteo'],
+    imageUrl: makePictoSvg(`
+      <path d="M32 40h56l-8 52H40L32 40z" fill="#f8fafc" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="28" y="30" width="64" height="10" rx="4" fill="#ec4899" stroke="#111827" stroke-width="3.5"/>
+      <circle cx="60" cy="64" r="10" fill="#f472b6" stroke="#111827" stroke-width="2.5"/>
+    `),
+  },
+  {
+    id: 'cat-torta',
+    label: 'Torta / Budín',
+    source: 'catalogo',
+    arasaacId: 2592,
+    keywords: ['torta', 'pastel', 'budin', 'budín', 'bizcochuelo', 'merienda', 'postre', 'dulce'],
+    imageUrl: makePictoSvg(`
+      <path d="M24 58l54-26 18 26v28H24V58z" fill="#fde68a" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M24 68h72v10H24z" fill="#78350f" stroke="#111827" stroke-width="3"/>
+      <circle cx="72" cy="30" r="7" fill="#ef4444" stroke="#111827" stroke-width="3"/>
+    `),
+  },
+  {
+    id: 'cat-flan',
+    label: 'Flan / Postre',
+    source: 'catalogo',
+    arasaacId: 2394,
+    keywords: ['flan', 'postre', 'caramelo', 'crema', 'dulce'],
+    imageUrl: makePictoSvg(`
+      <path d="M34 40h52l10 42H24L34 40z" fill="#facc15" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M34 40h52l4 14c-12-4-20 4-30 0s-18 4-30 0l4-14z" fill="#92400e" stroke="#111827" stroke-width="3"/>
+      <path d="M18 82h84" stroke="#111827" stroke-width="4" stroke-linecap="round"/>
+    `),
+  },
+  {
+    id: 'cat-arroz',
+    label: 'Arroz',
+    source: 'catalogo',
+    arasaacId: 2258,
+    keywords: ['arroz', 'guarnicion', 'guarnición', 'risotto', 'sin tacc'],
+    imageUrl: makePictoSvg(`
+      <path d="M26 56c8-20 60-20 68 0" fill="#ffffff" stroke="#111827" stroke-width="4"/>
+      <path d="M20 56h80c-4 24-20 36-40 36S24 80 20 56z" fill="#38bdf8" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="48" cy="48" r="2.5" fill="#94a3b8"/>
+      <circle cx="62" cy="45" r="2.5" fill="#94a3b8"/>
+      <circle cx="72" cy="50" r="2.5" fill="#94a3b8"/>
+    `),
+  },
+  {
+    id: 'cat-cerdo',
+    label: 'Cerdo / Bondiola',
+    source: 'catalogo',
+    arasaacId: 2330,
+    keywords: ['cerdo', 'bondiola', 'costilla', 'parrilla', 'carne'],
+    imageUrl: makePictoSvg(`
+      <path d="M24 62c0-18 16-30 38-30 20 0 34 12 34 26 0 16-14 28-36 28-20 0-36-8-36-24z" fill="#f9a8d4" stroke="#111827" stroke-width="4"/>
+      <circle cx="48" cy="58" r="6" fill="#ffffff" stroke="#111827" stroke-width="3"/>
+    `),
+  },
+  {
+    id: 'cat-sal',
+    label: 'Sal / Condimentos',
+    source: 'catalogo',
+    arasaacId: 2561,
+    keywords: ['sal', 'pimienta', 'condimento', 'especias'],
+    imageUrl: makePictoSvg(`
+      <path d="M40 38h40l6 54H34l6-54z" fill="#f1f5f9" stroke="#111827" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M42 38c0-12 36-12 36 0H42z" fill="#94a3b8" stroke="#111827" stroke-width="3.5"/>
+      <text x="60" y="72" text-anchor="middle" font-size="18" font-weight="bold" fill="#111827">S</text>
+    `),
+  },
+  {
+    id: 'cat-azucar',
+    label: 'Azúcar / Miel',
+    source: 'catalogo',
+    arasaacId: 2263,
+    keywords: ['azucar', 'azúcar', 'miel', 'dulce', 'desayuno', 'merienda'],
+    imageUrl: makePictoSvg(`
+      <rect x="34" y="42" width="24" height="24" rx="4" fill="#ffffff" stroke="#111827" stroke-width="3.5"/>
+      <rect x="60" y="46" width="24" height="24" rx="4" fill="#fef3c7" stroke="#111827" stroke-width="3.5"/>
+      <rect x="46" y="64" width="24" height="24" rx="4" fill="#ffffff" stroke="#111827" stroke-width="3.5"/>
+    `),
+  },
+  {
+    id: 'cat-sandwich',
+    label: 'Sándwich / Tostado',
+    source: 'catalogo',
+    arasaacId: 2562,
+    keywords: ['sandwich', 'sándwich', 'tostado', 'carlito', 'lomito', 'hamburguesa', 'merienda'],
+    imageUrl: makePictoSvg(`
+      <path d="M22 44c0-12 18-20 38-20s38 8 38 20H22z" fill="#d97706" stroke="#111827" stroke-width="4"/>
+      <rect x="20" y="46" width="80" height="10" rx="4" fill="#22c55e" stroke="#111827" stroke-width="3"/>
+      <rect x="20" y="56" width="80" height="10" rx="4" fill="#facc15" stroke="#111827" stroke-width="3"/>
+      <rect x="22" y="66" width="76" height="14" rx="4" fill="#d97706" stroke="#111827" stroke-width="4"/>
+    `),
+  },
 ];
 
+function normalizeText(str: string): string {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export function searchLocalCatalog(query: string): CatalogPictogramEntry[] {
-  const q = query.trim().toLowerCase();
+  const q = normalizeText(query);
   if (!q) return ARASAAC_LOCAL_CATALOG;
   return ARASAAC_LOCAL_CATALOG.filter(
     (item) =>
-      item.label.toLowerCase().includes(q) ||
-      item.keywords.some((kw) => kw.includes(q) || q.includes(kw))
+      normalizeText(item.label).includes(q) ||
+      item.keywords.some((kw) => {
+        const nkw = normalizeText(kw);
+        return nkw.includes(q) || q.includes(nkw);
+      })
   );
 }

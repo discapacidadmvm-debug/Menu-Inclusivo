@@ -145,8 +145,12 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
 
   // Buscador ARASAAC
   const [pictoQuery, setPictoQuery] = useState('');
+  const [pictoCategory, setPictoCategory] = useState<string>('todos');
+  const [pictoLimit, setPictoLimit] = useState<number>(80);
+  const [pictoHasMore, setPictoHasMore] = useState<boolean>(false);
+  const [pictoTotalRemote, setPictoTotalRemote] = useState<number>(0);
   const [pictoResults, setPictoResults] = useState<PictogramaItem[]>(
-    ARASAAC_LOCAL_CATALOG.slice(0, 12).map((c) => ({
+    ARASAAC_LOCAL_CATALOG.map((c) => ({
       id: c.id,
       label: c.label,
       imageUrl: c.imageUrl,
@@ -198,15 +202,35 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     }
   };
 
-  const handleSearchArasaac = async (queryText: string) => {
-    setPictoQuery(queryText);
+  const runArasaacSearch = async (
+    queryText: string,
+    cat = pictoCategory,
+    limit = pictoLimit
+  ) => {
     setSearchingPicto(true);
     try {
-      const results = await apiSearchArasaac(queryText);
-      setPictoResults(results);
+      const resp = await apiSearchArasaac(queryText, { cat, limit });
+      setPictoResults(resp.results);
+      setPictoHasMore(resp.hasMore);
+      setPictoTotalRemote(resp.totalRemote);
     } finally {
       setSearchingPicto(false);
     }
+  };
+
+  useEffect(() => {
+    if (!showDishForm) return;
+    const timer = setTimeout(() => {
+      void runArasaacSearch(pictoQuery, pictoCategory, pictoLimit);
+    }, pictoQuery.trim() ? 280 : 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDishForm, pictoQuery, pictoCategory, pictoLimit]);
+
+  const handleSearchArasaac = async (queryText: string) => {
+    setPictoQuery(queryText);
+    setPictoLimit(80);
+    await runArasaacSearch(queryText, pictoCategory, 80);
   };
 
   const openNewDishForm = () => {
@@ -220,6 +244,9 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     setLibreDeTacc(false);
     setDisponible(true);
     setPictogramas([]);
+    setPictoQuery('');
+    setPictoCategory('todos');
+    setPictoLimit(80);
     setDishError('');
     setShowDishForm(true);
   };
@@ -235,6 +262,9 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     setLibreDeTacc(p.libreDeTacc);
     setDisponible(p.disponible);
     setPictogramas(p.pictogramas);
+    setPictoQuery('');
+    setPictoCategory('todos');
+    setPictoLimit(80);
     setDishError('');
     setShowDishForm(true);
   };
@@ -827,52 +857,140 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                   {/* Buscador ARASAAC */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                     <div className="lg:col-span-8 space-y-3">
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
+                      <div className="flex flex-wrap gap-2">
+                        <div className="relative flex-1 min-w-[220px]">
                           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                           <input
                             type="text"
                             value={pictoQuery}
-                            onChange={(e) => setPictoQuery(e.target.value)}
+                            onChange={(e) => {
+                              setPictoLimit(80);
+                              setPictoQuery(e.target.value);
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
                                 e.preventDefault();
-                                handleSearchArasaac(pictoQuery);
+                                void handleSearchArasaac(pictoQuery);
                               }
                             }}
-                            placeholder="Buscar ingrediente en ARASAAC (ej. milanesa, jamón, queso, tomate)..."
+                            placeholder="Buscar cualquier ingrediente en ARASAAC (ej. milanesa, jamón, queso, tomate)..."
                             className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg"
                           />
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleSearchArasaac(pictoQuery)}
+                          onClick={() => void handleSearchArasaac(pictoQuery)}
                           className="px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 cursor-pointer whitespace-nowrap"
                         >
                           {searchingPicto ? 'Buscando...' : 'Buscar'}
                         </button>
+                        {(pictoQuery || pictoCategory !== 'todos') && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPictoQuery('');
+                              setPictoCategory('todos');
+                              setPictoLimit(80);
+                            }}
+                            className="px-3 py-2 text-sm font-medium bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 cursor-pointer whitespace-nowrap"
+                          >
+                            Ver todos
+                          </button>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 max-h-60 overflow-y-auto p-1">
-                        {pictoResults.map((item) => (
+                      {/* Categorías rápidas del catálogo ARASAAC */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {[
+                          { id: 'todos', label: 'Todos' },
+                          { id: 'desayuno', label: 'Desayuno y Merienda' },
+                          { id: 'alimento', label: 'Alimentos' },
+                          { id: 'carne', label: 'Carnes y Pescados' },
+                          { id: 'verdura', label: 'Verduras y Frutas' },
+                          { id: 'lacteo', label: 'Lácteos' },
+                          { id: 'postre', label: 'Postres' },
+                          { id: 'bebida', label: 'Bebidas' },
+                        ].map((catOpt) => (
                           <button
-                            key={item.id}
+                            key={catOpt.id}
                             type="button"
-                            onClick={() => handleAddPictogram(item)}
-                            className="bg-white border border-slate-200 hover:border-blue-600 rounded-lg p-2 flex flex-col items-center text-center gap-1 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setPictoQuery('');
+                              setPictoCategory(catOpt.id);
+                              setPictoLimit(80);
+                            }}
+                            className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+                              pictoCategory === catOpt.id && !pictoQuery
+                                ? 'bg-blue-700 border-blue-700 text-white'
+                                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
+                            }`}
                           >
-                            <img
-                              src={item.imageUrl}
-                              alt={item.label}
-                              referrerPolicy="no-referrer"
-                              className="w-12 h-12 object-contain"
-                            />
-                            <span className="text-xs font-medium text-slate-800 leading-tight line-clamp-2">
-                              {item.label}
-                            </span>
+                            {catOpt.label}
                           </button>
                         ))}
                       </div>
+
+                      <div className="flex items-center justify-between text-xs text-slate-600 px-0.5">
+                        <span>
+                          Mostrando <strong className="text-slate-900">{pictoResults.length}</strong> pictogramas
+                          {pictoTotalRemote > pictoResults.length
+                            ? ` (más de ${pictoTotalRemote} disponibles en ARASAAC)`
+                            : ''}
+                        </span>
+                        {searchingPicto && (
+                          <span className="text-blue-700 font-medium">
+                            Cargando biblioteca ARASAAC...
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 max-h-96 overflow-y-auto p-1.5 border border-slate-200 rounded-lg bg-slate-50/50">
+                        {pictoResults.length === 0 ? (
+                          <p className="col-span-full text-center text-xs text-slate-500 py-6">
+                            No se encontraron pictogramas para esa búsqueda. Probá otro término o subí un pictograma propio a la derecha.
+                          </p>
+                        ) : (
+                          pictoResults.map((item) => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => handleAddPictogram(item)}
+                              className="bg-white border border-slate-200 hover:border-blue-600 rounded-lg p-2 flex flex-col items-center text-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <img
+                                src={item.imageUrl}
+                                alt={item.label}
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (target.dataset.fallbackApplied) return;
+                                  target.dataset.fallbackApplied = '1';
+                                  const letter = (item.label || '?').charAt(0).toUpperCase();
+                                  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="10" fill="#f1f5f9"/><text x="40" y="48" text-anchor="middle" font-size="28" font-weight="bold" fill="#334155">${letter}</text></svg>`;
+                                  target.src = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+                                }}
+                                className="w-12 h-12 object-contain"
+                              />
+                              <span className="text-xs font-medium text-slate-800 leading-tight line-clamp-2">
+                                {item.label}
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+
+                      {pictoHasMore && pictoLimit < 200 && (
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            onClick={() => setPictoLimit((prev) => Math.min(prev + 60, 200))}
+                            className="px-4 py-1.5 text-xs font-semibold bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 cursor-pointer"
+                          >
+                            Cargar más pictogramas de ARASAAC
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Cargar pictograma propio si no hay apto en ARASAAC */}

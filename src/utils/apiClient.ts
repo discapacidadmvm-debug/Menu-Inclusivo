@@ -588,19 +588,89 @@ export async function apiSaveCustomPictogram(
   return record;
 }
 
-export async function apiSearchArasaac(queryText: string): Promise<PictogramaItem[]> {
-  const res = await tryApiJson<{ results: PictogramaItem[] }>(
-    `/api/arasaac/search?q=${encodeURIComponent(queryText)}`
-  );
+export interface ArasaacSearchResponse {
+  results: PictogramaItem[];
+  totalRemote: number;
+  hasMore: boolean;
+}
+
+export async function apiSearchArasaac(
+  queryText: string,
+  options?: { cat?: string; limit?: number }
+): Promise<ArasaacSearchResponse> {
+  const cat = options?.cat || 'todos';
+  const limit = options?.limit ?? 80;
+  const params = new URLSearchParams();
+  if (queryText.trim()) params.set('q', queryText.trim());
+  if (cat) params.set('cat', cat);
+  params.set('limit', String(limit));
+
+  const res = await tryApiJson<{
+    results: PictogramaItem[];
+    totalRemote?: number;
+    hasMore?: boolean;
+  }>(`/api/arasaac/search?${params.toString()}`);
+
   if (res.ok && res.data?.results) {
-    return res.data.results;
+    return {
+      results: res.data.results,
+      totalRemote: res.data.totalRemote ?? res.data.results.length,
+      hasMore: Boolean(res.data.hasMore),
+    };
   }
-  return searchLocalCatalog(queryText).map((c) => ({
+
+  // Fallback directo (p. ej. hosting estático): catálogo local completo + API oficial ARASAAC (CORS abierto)
+  const localItems: PictogramaItem[] = searchLocalCatalog(
+    queryText.trim() || (cat !== 'todos' ? cat : '')
+  ).map((c) => ({
     id: c.id,
     label: c.label,
     imageUrl: c.imageUrl,
     source: 'catalogo',
   }));
+
+  const remoteItems: PictogramaItem[] = [];
+  const searchTerm =
+    queryText.trim().length >= 2
+      ? queryText.trim()
+      : cat !== 'todos'
+        ? cat
+        : 'alimento';
+  try {
+    const r = await fetch(
+      `https://api.arasaac.org/v1/pictograms/es/search/${encodeURIComponent(searchTerm)}`
+    );
+    if (r.ok) {
+      const data = (await r.json()) as Array<{
+        _id: number;
+        keywords?: Array<{ keyword?: string }>;
+      }>;
+      if (Array.isArray(data)) {
+        for (const item of data.slice(0, limit)) {
+          const kwLabel = item.keywords?.[0]?.keyword || searchTerm;
+          remoteItems.push({
+            id: `arasaac-${item._id}`,
+            label: kwLabel.charAt(0).toUpperCase() + kwLabel.slice(1),
+            imageUrl: `https://static.arasaac.org/pictograms/${item._id}/${item._id}_300.png`,
+            source: 'arasaac',
+          });
+        }
+        return {
+          results: [...localItems, ...remoteItems],
+          totalRemote: data.length,
+          hasMore: data.length > limit,
+        };
+      }
+    }
+  } catch {
+    // Silencioso: al menos devolvemos el catálogo local completo
+  }
+
+  return {
+    results: localItems,
+    totalRemote: 0,
+    hasMore: false,
+  };
 }
 
 export async function apiTranslateMenu(

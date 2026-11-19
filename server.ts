@@ -477,52 +477,108 @@ async function startServer() {
     res.status(201).json({ pictograma: record });
   });
 
+  // Caché en memoria para búsquedas ARASAAC (evita demoras repetidas)
+  const arasaacCache = new Map<string, { ts: number; items: PictogramaItem[] }>();
+  const ARASAAC_CACHE_TTL_MS = 60 * 60 * 1000;
+
+  async function fetchArasaacKeyword(keyword: string): Promise<PictogramaItem[]> {
+    const cacheKey = keyword.toLowerCase().trim();
+    const cached = arasaacCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < ARASAAC_CACHE_TTL_MS) {
+      return cached.items;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6500);
+    try {
+      const apiUrl = `https://api.arasaac.org/v1/pictograms/es/search/${encodeURIComponent(keyword)}`;
+      const resp = await fetch(apiUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!resp.ok) return [];
+      const data = (await resp.json()) as Array<{
+        _id: number;
+        keywords?: Array<{ keyword?: string }>;
+      }>;
+      if (!Array.isArray(data)) return [];
+      const items: PictogramaItem[] = data.map((item) => {
+        const kwLabel = item.keywords?.[0]?.keyword || keyword;
+        const formatted = kwLabel.charAt(0).toUpperCase() + kwLabel.slice(1);
+        return {
+          id: `arasaac-${item._id}`,
+          label: formatted,
+          imageUrl: `https://static.arasaac.org/pictograms/${item._id}/${item._id}_300.png`,
+          source: 'arasaac',
+        };
+      });
+      arasaacCache.set(cacheKey, { ts: Date.now(), items });
+      return items;
+    } catch {
+      clearTimeout(timeout);
+      return [];
+    }
+  }
+
   // --- BUSCADOR DE PICTOGRAMAS ARASAAC (API oficial + catálogo local instantáneo) ---
   app.get('/api/arasaac/search', async (req, res) => {
     const q = String(req.query.q || '').trim();
-    const localMatches: PictogramaItem[] = searchLocalCatalog(q).map((c) => ({
+    const cat = String(req.query.cat || 'todos').trim().toLowerCase();
+    const requestedLimit = Number(req.query.limit);
+    const limit =
+      Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, 200)
+        : 80;
+
+    const categorySeedTerms: Record<string, string[]> = {
+      todos: ['alimento', 'bebida', 'postre'],
+      desayuno: ['desayuno', 'cafe', 'leche', 'pan', 'merienda'],
+      alimento: ['alimento', 'comida'],
+      carne: ['carne', 'pescado'],
+      verdura: ['verdura', 'fruta'],
+      lacteo: ['lacteo', 'queso'],
+      postre: ['postre', 'helado', 'chocolate'],
+      bebida: ['bebida', 'jugo'],
+    };
+
+    const localQuery = q || (cat !== 'todos' ? cat : '');
+    const localMatches: PictogramaItem[] = searchLocalCatalog(localQuery).map((c) => ({
       id: c.id,
       label: c.label,
       imageUrl: c.imageUrl,
       source: 'catalogo',
     }));
 
-    if (!q || q.length < 2) {
-      res.json({ results: localMatches, remoteCount: 0 });
-      return;
-    }
-
-    const remoteResults: PictogramaItem[] = [];
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 3500);
-      const apiUrl = `https://api.arasaac.org/v1/pictograms/es/search/${encodeURIComponent(q)}`;
-      const resp = await fetch(apiUrl, { signal: controller.signal });
-      clearTimeout(timeout);
-      if (resp.ok) {
-        const data = (await resp.json()) as Array<{
-          _id: number;
-          keywords?: Array<{ keyword?: string }>;
-        }>;
-        for (const item of data.slice(0, 12)) {
-          const kwLabel = item.keywords?.[0]?.keyword || q;
-          const formatted =
-            kwLabel.charAt(0).toUpperCase() + kwLabel.slice(1);
-          remoteResults.push({
-            id: `arasaac-${item._id}`,
-            label: formatted,
-            imageUrl: `https://static.arasaac.org/pictograms/${item._id}/${item._id}_300.png`,
-            source: 'arasaac',
-          });
+    let remotePool: PictogramaItem[] = [];
+    if (q.length >= 2) {
+      remotePool = await fetchArasaacKeyword(q);
+      if (remotePool.length === 0) {
+        const plain = q.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (plain !== q) {
+          remotePool = await fetchArasaacKeyword(plain);
         }
       }
-    } catch {
-      // Silencioso: si el entorno bloquea salida externa, devolvemos el catálogo local sin romper nada
+    } else if (!q) {
+      const terms = categorySeedTerms[cat] || categorySeedTerms.todos;
+      const batches = await Promise.all(terms.map((t) => fetchArasaacKeyword(t)));
+      const seen = new Set<string>();
+      for (const batch of batches) {
+        for (const item of batch) {
+          if (!seen.has(item.id)) {
+            seen.add(item.id);
+            remotePool.push(item);
+          }
+        }
+      }
     }
 
+    const remoteSlice = remotePool.slice(0, limit);
+    const results = [...localMatches, ...remoteSlice];
+
     res.json({
-      results: [...localMatches, ...remoteResults],
-      remoteCount: remoteResults.length,
+      results,
+      localCount: localMatches.length,
+      remoteCount: remoteSlice.length,
+      totalRemote: remotePool.length,
+      hasMore: remotePool.length > limit,
     });
   });
 
