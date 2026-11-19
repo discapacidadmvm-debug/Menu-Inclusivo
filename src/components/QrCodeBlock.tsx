@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import QRCode from 'qrcode';
 import { Download, Copy, Check, ExternalLink } from 'lucide-react';
+import { QrSvg } from './QrSvg.tsx';
 
 interface QrCodeBlockProps {
   url: string;
@@ -19,34 +20,27 @@ export const QrCodeBlock: React.FC<QrCodeBlockProps> = ({
   showActions = true,
   onOpenDigitalMenu,
 }) => {
-  const [dataUrl, setDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    QRCode.toDataURL(url, {
-      width: size * 2,
-      margin: 2,
-      color: {
-        dark: '#0f172a',
-        light: '#ffffff',
-      },
-      errorCorrectionLevel: 'M',
-    })
-      .then((res) => {
-        if (active) setDataUrl(res);
-      })
-      .catch(() => {
-        if (active) setDataUrl('');
-      });
-    return () => {
-      active = false;
-    };
-  }, [url, size]);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      return;
+    } catch {
+      // Fallback para entornos sin permiso de portapapeles
+    }
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = url;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -54,12 +48,21 @@ export const QrCodeBlock: React.FC<QrCodeBlockProps> = ({
     }
   };
 
-  const handleDownloadPng = () => {
-    if (!dataUrl) return;
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = `qr-carta-${comercioNombre.toLowerCase().replace(/\s+/g, '-')}.png`;
-    link.click();
+  const handleDownloadPng = async () => {
+    try {
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: Math.max(size * 3, 600),
+        margin: 2,
+        color: { dark: '#0f172a', light: '#ffffff' },
+        errorCorrectionLevel: 'M',
+      });
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `qr-carta-${comercioNombre.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+      link.click();
+    } catch {
+      // Si fallara toDataURL, no rompe la UI
+    }
   };
 
   return (
@@ -68,20 +71,12 @@ export const QrCodeBlock: React.FC<QrCodeBlockProps> = ({
         className="bg-white border border-slate-300 rounded-xl p-3 flex items-center justify-center"
         style={{ width: size + 24, height: size + 24 }}
       >
-        {dataUrl ? (
-          <img
-            src={dataUrl}
-            alt={`Código QR de la carta digital inclusiva de ${comercioNombre}`}
-            width={size}
-            height={size}
-            className="block"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="text-xs text-slate-500 text-center px-4">
-            Generando código QR...
-          </div>
-        )}
+        <QrSvg
+          value={url}
+          size={size}
+          title={`Código QR de la carta digital inclusiva de ${comercioNombre}`}
+          quietZone={2}
+        />
       </div>
 
       {obleaNumero && (
@@ -95,8 +90,7 @@ export const QrCodeBlock: React.FC<QrCodeBlockProps> = ({
           <button
             type="button"
             onClick={handleDownloadPng}
-            disabled={!dataUrl}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             <Download className="w-4 h-4" />
             Descargar QR (PNG)
@@ -107,7 +101,11 @@ export const QrCodeBlock: React.FC<QrCodeBlockProps> = ({
             onClick={handleCopy}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4" />}
+            {copied ? (
+              <Check className="w-4 h-4 text-emerald-700" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
             {copied ? 'Enlace copiado' : 'Copiar enlace'}
           </button>
 

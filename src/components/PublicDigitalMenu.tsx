@@ -122,15 +122,20 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
     return Array.from(new Set(platos.map((p) => p.categoria)));
   }, [platos]);
 
+  const focusedDishExists = useMemo(
+    () => Boolean(focusedPlatoId && platos.some((p) => p.id === focusedPlatoId)),
+    [focusedPlatoId, platos]
+  );
+
   const filteredPlatos = useMemo(() => {
     const base = platos.filter((p) => {
-      if (focusedPlatoId && p.id !== focusedPlatoId) return false;
+      if (focusedDishExists && p.id !== focusedPlatoId) return false;
       if (selectedCategory !== 'ALL' && p.categoria !== selectedCategory) return false;
       if (onlySinTacc && !p.libreDeTacc) return false;
       return true;
     });
     return base;
-  }, [platos, focusedPlatoId, selectedCategory, onlySinTacc]);
+  }, [platos, focusedDishExists, focusedPlatoId, selectedCategory, onlySinTacc]);
 
   const getDishView = (plato: PlatoMenu) => {
     const tr = idioma === 'es-AR' ? undefined : translations[plato.id];
@@ -473,7 +478,9 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
         {focusedPlatoId && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold text-blue-950">
-              Mostrando el plato seleccionado por código QR.
+              {focusedDishExists
+                ? 'Mostrando el plato seleccionado por código QR.'
+                : 'El plato solicitado por QR no está disponible actualmente; mostrando toda la carta.'}
             </p>
             {onClearFocus && (
               <button

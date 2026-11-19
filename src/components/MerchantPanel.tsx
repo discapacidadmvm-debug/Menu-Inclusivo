@@ -211,7 +211,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
 
   const openNewDishForm = () => {
     setEditingPlatoId(null);
-    setDraftPlatoId(`pla-${Date.now()}`);
+    setDraftPlatoId(`pla-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`);
     setCategoria('Desayunos y Meriendas');
     setNombre('');
     setDescripcion('');
@@ -439,7 +439,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     );
   }
 
-  const publicMenuUrl = `${window.location.origin}/?carta=${comercio.slug}`;
+  const publicMenuUrl = `${window.location.origin}${window.location.pathname || '/'}?carta=${encodeURIComponent(comercio.slug)}`;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
@@ -981,6 +981,12 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                       platoId={editingPlatoId || draftPlatoId}
                       platoNombre={nombre || 'Nuevo plato'}
                       size={84}
+                      isDraftUnsaved={!editingPlatoId}
+                      onTestQr={
+                        editingPlatoId
+                          ? () => onOpenDigitalMenu(comercio.slug, editingPlatoId)
+                          : undefined
+                      }
                     />
                   </div>
                 </div>
@@ -1128,6 +1134,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                           platoId={plato.id}
                           platoNombre={plato.nombre}
                           size={68}
+                          onTestQr={() => onOpenDigitalMenu(comercio.slug, plato.id)}
                         />
                       </div>
                     </div>
@@ -1209,6 +1216,15 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                 · Modo de alto contraste y texto ampliado para personas con baja visión.
               </li>
             </ul>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                Enlace codificado en este QR
+              </p>
+              <p className="text-xs font-mono-tabular text-slate-800 break-all select-all">
+                {publicMenuUrl}
+              </p>
+            </div>
 
             <div className="pt-2">
               <button
