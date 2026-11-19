@@ -26,6 +26,15 @@ import {
 import { ARASAAC_LOCAL_CATALOG } from '../data/arasaacCatalog.ts';
 import { formatArs, formatFechaAr } from '../utils/dates.ts';
 import { formatDishPriceBraille } from '../utils/braille.ts';
+import {
+  apiAuthComercio,
+  apiDeletePlato,
+  apiGetMerchantMenu,
+  apiGetPublicComercios,
+  apiSaveCustomPictogram,
+  apiSavePlato,
+  apiSearchArasaac,
+} from '../utils/apiClient.ts';
 import { SinTaccLogo } from './SinTaccLogo.tsx';
 import { A4PrintSuite } from './A4PrintSuite.tsx';
 import { QrCodeBlock } from './QrCodeBlock.tsx';
@@ -152,22 +161,19 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
   const [uploadingCustom, setUploadingCustom] = useState(false);
 
   useEffect(() => {
-    fetch('/api/public/comercios')
-      .then((res) => res.json())
-      .then((data) => {
-        const list = (data.comercios || []) as ComercioPublico[];
+    apiGetPublicComercios()
+      .then((list) => {
         setComerciosList(list);
         if (list.length > 0) {
-          setSelectedComercioId(list[0].id);
+          setSelectedComercioId((prev) => prev || list[0].id);
         }
       })
       .catch(() => {});
   }, []);
 
   const loadMerchantMenu = async (comercioId: string) => {
-    const res = await fetch(`/api/comercio/${comercioId}/menu`);
-    const data = await res.json();
-    if (res.ok) {
+    const data = await apiGetMerchantMenu(comercioId);
+    if (data) {
       setComercio(data.comercio);
       setPlatos(data.platos || []);
       setCustomPictograms(data.customPictograms || []);
@@ -179,20 +185,12 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     setAuthLoading(true);
     setAuthError('');
     try {
-      const res = await fetch('/api/auth/comercio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          comercioId: selectedComercioId,
-          password: passwordInput,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setAuthError(data.error || 'Contraseña incorrecta.');
+      const result = await apiAuthComercio(selectedComercioId, passwordInput);
+      if (!result.ok || !result.comercio) {
+        setAuthError(result.error || 'Contraseña incorrecta.');
         return;
       }
-      await loadMerchantMenu(data.comercio.id);
+      await loadMerchantMenu(result.comercio.id);
     } catch {
       setAuthError('Error de conexión.');
     } finally {
@@ -204,11 +202,8 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     setPictoQuery(queryText);
     setSearchingPicto(true);
     try {
-      const res = await fetch(
-        `/api/arasaac/search?q=${encodeURIComponent(queryText)}`
-      );
-      const data = await res.json();
-      setPictoResults(data.results || []);
+      const results = await apiSearchArasaac(queryText);
+      setPictoResults(results);
     } finally {
       setSearchingPicto(false);
     }
@@ -272,18 +267,14 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     if (!comercio || !customLabel.trim() || !customPreview) return;
     setUploadingCustom(true);
     try {
-      const res = await fetch(`/api/comercio/${comercio.id}/pictogramas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          label: customLabel.trim(),
-          imageUrl: customPreview,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.pictograma) {
-        setCustomPictograms((prev) => [...prev, data.pictograma]);
-        setPictogramas((prev) => [...prev, data.pictograma]);
+      const picto = await apiSaveCustomPictogram(
+        comercio.id,
+        customLabel.trim(),
+        customPreview
+      );
+      if (picto) {
+        setCustomPictograms((prev) => [...prev, picto]);
+        setPictogramas((prev) => [...prev, picto]);
         setCustomLabel('');
         setCustomPreview('');
       }
@@ -319,28 +310,19 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     setSavingPlato(true);
     setDishError('');
     try {
-      const url = editingPlatoId
-        ? `/api/comercio/${comercio.id}/platos/${editingPlatoId}`
-        : `/api/comercio/${comercio.id}/platos`;
-      const method = editingPlatoId ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...(editingPlatoId ? {} : { id: draftPlatoId }),
-          categoria,
-          nombre,
-          descripcion,
-          precioArs: Number(precioArs) || 0,
-          fotoUrl,
-          libreDeTacc,
-          disponible,
-          pictogramas,
-        }),
+      const result = await apiSavePlato(comercio.id, editingPlatoId, {
+        ...(editingPlatoId ? {} : { id: draftPlatoId }),
+        categoria,
+        nombre,
+        descripcion,
+        precioArs: Number(precioArs) || 0,
+        fotoUrl,
+        libreDeTacc,
+        disponible,
+        pictogramas,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setDishError(data.error || 'No se pudo guardar el plato.');
+      if (!result.ok) {
+        setDishError(result.error || 'No se pudo guardar el plato.');
         return;
       }
       await loadMerchantMenu(comercio.id);
@@ -354,9 +336,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
 
   const handleDeletePlato = async (platoId: string) => {
     if (!comercio) return;
-    await fetch(`/api/comercio/${comercio.id}/platos/${platoId}`, {
-      method: 'DELETE',
-    });
+    await apiDeletePlato(comercio.id, platoId);
     await loadMerchantMenu(comercio.id);
   };
 

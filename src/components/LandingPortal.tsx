@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { ComercioPublico } from '../types.ts';
 import { formatFechaAr } from '../utils/dates.ts';
+import { apiGetPublicComercios } from '../utils/apiClient.ts';
 import { SinTaccLogo } from './SinTaccLogo.tsx';
 import { ARASAAC_LOCAL_CATALOG } from '../data/arasaacCatalog.ts';
 
@@ -31,10 +32,8 @@ export const LandingPortal: React.FC<LandingPortalProps> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/public/comercios')
-      .then((res) => res.json())
-      .then((data) => setComercios(data.comercios || []))
-      .catch(() => {})
+    apiGetPublicComercios()
+      .then((list) => setComercios(list))
       .finally(() => setLoading(false));
   }, []);
 

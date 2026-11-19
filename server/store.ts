@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import {
+import type {
   ComercioAdmin,
   ComercioPublico,
   PictogramaItem,
@@ -233,30 +233,52 @@ function createInitialSeed(): DatabaseState {
   };
 }
 
+let memoryCache: DatabaseState | null = null;
+
 export function loadDb(): DatabaseState {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(DB_PATH)) {
-    const initial = createInitialSeed();
-    fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2), 'utf-8');
-    return initial;
-  }
   try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(DB_PATH)) {
+      const initial = memoryCache || createInitialSeed();
+      memoryCache = initial;
+      try {
+        fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2), 'utf-8');
+      } catch {
+        // ignore if filesystem is read-only
+      }
+      return initial;
+    }
     const raw = fs.readFileSync(DB_PATH, 'utf-8');
-    return JSON.parse(raw) as DatabaseState;
+    const parsed = JSON.parse(raw) as DatabaseState;
+    if (!Array.isArray(parsed.comercios)) {
+      throw new Error('Invalid DB shape');
+    }
+    memoryCache = parsed;
+    return parsed;
   } catch {
-    const fallback = createInitialSeed();
-    fs.writeFileSync(DB_PATH, JSON.stringify(fallback, null, 2), 'utf-8');
+    const fallback = memoryCache || createInitialSeed();
+    memoryCache = fallback;
+    try {
+      fs.writeFileSync(DB_PATH, JSON.stringify(fallback, null, 2), 'utf-8');
+    } catch {
+      // ignore if filesystem is read-only
+    }
     return fallback;
   }
 }
 
 export function saveDb(state: DatabaseState): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  memoryCache = state;
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DB_PATH, JSON.stringify(state, null, 2), 'utf-8');
+  } catch {
+    // keep in-memory state if disk write is unavailable
   }
-  fs.writeFileSync(DB_PATH, JSON.stringify(state, null, 2), 'utf-8');
 }
 
 export function toComercioPublico(c: StoredComercio): ComercioPublico {

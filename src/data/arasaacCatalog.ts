@@ -1,4 +1,4 @@
-import { PictogramaItem } from '../types.ts';
+import type { PictogramaItem } from '../types.ts';
 
 function makePictoSvg(paths: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"><rect width="120" height="120" rx="12" fill="#ffffff"/>${paths}</svg>`;

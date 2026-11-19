@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import {
   loadDb,
@@ -12,7 +11,12 @@ import {
   toComercioPublico,
 } from './server/store.ts';
 import { searchLocalCatalog } from './src/data/arasaacCatalog.ts';
-import { IdiomaCodigo, PictogramaItem, PlatoMenu, TranslatedPlatoFields } from './src/types.ts';
+import type {
+  IdiomaCodigo,
+  PictogramaItem,
+  PlatoMenu,
+  TranslatedPlatoFields,
+} from './src/types.ts';
 
 const PORT = 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'mackenna2026';
@@ -624,6 +628,7 @@ async function startServer() {
 
   // --- VITE / STATIC ---
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',

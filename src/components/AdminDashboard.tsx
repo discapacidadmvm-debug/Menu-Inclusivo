@@ -20,6 +20,13 @@ import {
   formatFechaAr,
   getTodayArIso,
 } from '../utils/dates.ts';
+import {
+  apiAuthAdmin,
+  apiCreateComercio,
+  apiDeleteComercio,
+  apiGetAdminComercios,
+  apiUpdateComercio,
+} from '../utils/apiClient.ts';
 
 interface AdminDashboardProps {
   onOpenDigitalMenu: (slug: string) => void;
@@ -63,9 +70,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const loadComercios = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/comercios');
-      const data = await res.json();
-      setComercios(data.comercios || []);
+      const list = await apiGetAdminComercios();
+      setComercios(list);
     } finally {
       setLoading(false);
     }
@@ -82,14 +88,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setAuthLoading(true);
     setAuthError('');
     try {
-      const res = await fetch('/api/auth/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: adminPasswordInput }),
-      });
-      if (!res.ok) {
-        const d = await res.json();
-        setAuthError(d.error || 'Contraseña incorrecta.');
+      const result = await apiAuthAdmin(adminPasswordInput);
+      if (!result.ok) {
+        setAuthError(result.error || 'Contraseña incorrecta.');
         return;
       }
       setAuthenticated(true);
@@ -137,25 +138,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setSaving(true);
     setFormError('');
     try {
-      const url = editingId
-        ? `/api/admin/comercios/${editingId}`
-        : '/api/admin/comercios';
-      const method = editingId ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre,
-          rubro,
-          direccion,
-          telefono,
-          password,
-          fechaHabilitacion,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setFormError(data.error || 'No se pudo guardar el comercio.');
+      const result = editingId
+        ? await apiUpdateComercio(editingId, {
+            nombre,
+            rubro,
+            direccion,
+            telefono,
+            password,
+            fechaHabilitacion,
+          })
+        : await apiCreateComercio({
+            nombre,
+            rubro,
+            direccion,
+            telefono,
+            password,
+            fechaHabilitacion,
+          });
+      if (!result.ok) {
+        setFormError(result.error || 'No se pudo guardar el comercio.');
         return;
       }
       await loadComercios();
@@ -170,25 +171,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleRenovarUnAnio = async (c: ComercioAdmin) => {
     const hoy = getTodayArIso();
-    await fetch(`/api/admin/comercios/${c.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fechaHabilitacion: hoy, activa: true }),
-    });
+    await apiUpdateComercio(c.id, { fechaHabilitacion: hoy, activa: true });
     await loadComercios();
   };
 
   const handleToggleActiva = async (c: ComercioAdmin) => {
-    await fetch(`/api/admin/comercios/${c.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ activa: !c.activa }),
-    });
+    await apiUpdateComercio(c.id, { activa: !c.activa });
     await loadComercios();
   };
 
   const handleDelete = async (c: ComercioAdmin) => {
-    await fetch(`/api/admin/comercios/${c.id}`, { method: 'DELETE' });
+    await apiDeleteComercio(c.id);
     await loadComercios();
   };
 

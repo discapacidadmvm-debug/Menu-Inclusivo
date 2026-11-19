@@ -26,6 +26,7 @@ import {
 } from '../utils/i18n.ts';
 import { formatArs } from '../utils/dates.ts';
 import { formatDishPriceBraille } from '../utils/braille.ts';
+import { apiGetPublicCarta, apiTranslateMenu } from '../utils/apiClient.ts';
 import { SinTaccLogo } from './SinTaccLogo.tsx';
 import { DishQrMini } from './DishQrMini.tsx';
 
@@ -65,13 +66,13 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
     let active = true;
     setLoading(true);
     setError('');
-    fetch(`/api/public/carta/${encodeURIComponent(slug)}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error('No se encontró la carta solicitada.');
-        return res.json();
-      })
+    apiGetPublicCarta(slug)
       .then((data) => {
         if (!active) return;
+        if (!data) {
+          setError('No se encontró la carta solicitada.');
+          return;
+        }
         setComercio(data.comercio);
         setPlatos(data.platos || []);
       })
@@ -97,19 +98,14 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
     }
     let active = true;
     setTranslating(true);
-    fetch('/api/translate-menu', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, targetLang: idioma }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (active && data.translations) {
-          setTranslations(data.translations);
+    apiTranslateMenu(slug, idioma)
+      .then((tr) => {
+        if (active && tr) {
+          setTranslations(tr);
         }
       })
       .catch(() => {
-        // Si falla la red mantiene español
+        // Si falla mantiene español
       })
       .finally(() => {
         if (active) setTranslating(false);
