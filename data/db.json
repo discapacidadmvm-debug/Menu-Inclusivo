@@ -1,0 +1,285 @@
+{
+  "comercios": [
+    {
+      "id": "com-1",
+      "slug": "bodegon-el-encuentro",
+      "nombre": "Bodegón El Encuentro",
+      "rubro": "Restaurante",
+      "direccion": "Av. Sarmiento 412, Vicuña Mackenna, Córdoba",
+      "telefono": "03583 42-1890",
+      "password": "milan2026",
+      "fechaHabilitacion": "2026-07-22",
+      "activa": true,
+      "obleaNumero": "VM-INC-001"
+    },
+    {
+      "id": "com-2",
+      "slug": "cafe-plaza-mackenna",
+      "nombre": "Café y Confitería Plaza",
+      "rubro": "Café",
+      "direccion": "Belgrano 185 (frente a Plaza Sarmiento), Vicuña Mackenna",
+      "telefono": "03583 42-3410",
+      "password": "cafe2026",
+      "fechaHabilitacion": "2025-12-24",
+      "activa": true,
+      "obleaNumero": "VM-INC-002"
+    },
+    {
+      "id": "com-3",
+      "slug": "heladeria-los-tilos",
+      "nombre": "Heladería Artesanal Los Tilos",
+      "rubro": "Heladería",
+      "direccion": "San Martín 620, Vicuña Mackenna, Córdoba",
+      "telefono": "03583 42-5122",
+      "password": "helado2026",
+      "fechaHabilitacion": "2025-11-04",
+      "activa": true,
+      "obleaNumero": "VM-INC-003"
+    }
+  ],
+  "platos": [
+    {
+      "id": "pla-1",
+      "comercioId": "com-1",
+      "categoria": "Platos Principales",
+      "nombre": "Milanesa a la Napolitana con Papas Fritas",
+      "descripcion": "Milanesa de ternera cubierta con salsa de tomate casera, jamón cocido, queso muzzarella gratinado y orégano. Incluye guarnición de papas fritas.",
+      "precioArs": 14500,
+      "fotoUrl": "/src/assets/images/dish_milanesa_napolitana_1795101212946.jpg",
+      "libreDeTacc": false,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-milanesa",
+          "label": "Milanesa",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2264%22%20rx%3D%2244%22%20ry%3D%2226%22%20fill%3D%22%23d97706%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2260%22%20rx%3D%2238%22%20ry%3D%2220%22%20fill%3D%22%23f59e0b%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2242%22%20cy%3D%2257%22%20r%3D%222.5%22%20fill%3D%22%2378350f%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2258%22%20cy%3D%2252%22%20r%3D%222.5%22%20fill%3D%22%2378350f%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2274%22%20cy%3D%2261%22%20r%3D%222.5%22%20fill%3D%22%2378350f%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2252%22%20cy%3D%2266%22%20r%3D%222.5%22%20fill%3D%22%2378350f%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2267%22%20cy%3D%2255%22%20r%3D%222%22%20fill%3D%22%2378350f%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-jamon",
+          "label": "Jamón",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M22%2068c0-18%2016-34%2038-34%2020%200%2038%2014%2038%2030%200%2015-16%2024-38%2024-22%200-38-6-38-20z%22%20fill%3D%22%23fda4af%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M30%2066c0-11%2012-22%2030-22%2015%200%2028%209%2028%2019%200%209-12%2015-28%2015-16%200-30-4-30-12z%22%20fill%3D%22%23fb7185%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2276%22%20cy%3D%2258%22%20r%3D%226%22%20fill%3D%22%23fff1f2%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-queso",
+          "label": "Queso",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M18%2076L62%2028l40%2024v32H18V76z%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M18%2076h84v10H18z%22%20fill%3D%22%23facc15%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2248%22%20cy%3D%2266%22%20r%3D%226%22%20fill%3D%22%23ca8a04%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2272%22%20cy%3D%2256%22%20r%3D%225%22%20fill%3D%22%23ca8a04%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2284%22%20cy%3D%2270%22%20r%3D%224%22%20fill%3D%22%23ca8a04%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-tomate",
+          "label": "Salsa de tomate",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2266%22%20r%3D%2230%22%20fill%3D%22%23ef4444%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M60%2036c-6-10-16-8-18-4%208%200%2012%204%2018%204zm0%200c6-10%2016-8%2018-4-8%200-12%204-18%204zm0%200v-12%22%20fill%3D%22%2322c55e%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M44%2054c3-5%208-8%2014-8%22%20fill%3D%22none%22%20stroke%3D%22%23fecaca%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-papas-fritas",
+          "label": "Papas fritas",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2234%22%20y%3D%2224%22%20width%3D%2210%22%20height%3D%2244%22%20rx%3D%223%22%20fill%3D%22%23facc15%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2248%22%20y%3D%2218%22%20width%3D%2210%22%20height%3D%2250%22%20rx%3D%223%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2262%22%20y%3D%2220%22%20width%3D%2210%22%20height%3D%2248%22%20rx%3D%223%22%20fill%3D%22%23facc15%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2276%22%20y%3D%2228%22%20width%3D%2210%22%20height%3D%2240%22%20rx%3D%223%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M28%2054h64l-8%2044H36l-8-44z%22%20fill%3D%22%23dc2626%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 1
+    },
+    {
+      "id": "pla-2",
+      "comercioId": "com-1",
+      "categoria": "Entradas",
+      "nombre": "Empanadas Criollas al Horno (3 unidades)",
+      "descripcion": "Tres empanadas horneadas rellenas de carne vacuna cortada a cuchillo, cebolla y huevo duro, acompañadas con gajo de limón.",
+      "precioArs": 5400,
+      "fotoUrl": "/src/assets/images/dish_empanadas_criollas_1795101212958.jpg",
+      "libreDeTacc": false,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-empanada",
+          "label": "Empanada",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M18%2076c4-24%2022-40%2042-40s38%2016%2042%2040c-22%208-62%208-84%200z%22%20fill%3D%22%23f59e0b%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M24%2072c8-16%2020-26%2036-26s28%2010%2036%2026%22%20fill%3D%22none%22%20stroke%3D%22%2392400e%22%20stroke-width%3D%223%22%20stroke-dasharray%3D%226%205%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-carne",
+          "label": "Carne vacuna",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M22%2062c0-20%2018-32%2042-32%2022%200%2036%2012%2036%2028%200%2018-16%2032-40%2032-22%200-38-10-38-28z%22%20fill%3D%22%23b91c1c%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M32%2062c0-13%2013-22%2032-22%2016%200%2026%208%2026%2019%200%2012-11%2021-30%2021-17%200-28-7-28-18z%22%20fill%3D%22%23ef4444%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2248%22%20cy%3D%2258%22%20r%3D%226%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-cebolla",
+          "label": "Cebolla / Ajo",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M60%2022c-2%2010-26%2022-26%2044%200%2016%2012%2028%2026%2028s26-12%2026-28c0-22-24-34-26-44z%22%20fill%3D%22%23e9d5ff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M60%2026c-8%2014-12%2036%200%2068M60%2026c8%2014%2012%2036%200%2068%22%20fill%3D%22none%22%20stroke%3D%22%239333ea%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-huevo",
+          "label": "Huevo",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M30%2072c-8-14%200-32%2016-38%2014-6%2036-4%2046%2010%2010%2014%204%2036-14%2042-16%206-40%200-48-14z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2262%22%20r%3D%2216%22%20fill%3D%22%23facc15%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-limon",
+          "label": "Limón",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2260%22%20rx%3D%2234%22%20ry%3D%2226%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2226%22%20cy%3D%2260%22%20r%3D%225%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2294%22%20cy%3D%2260%22%20r%3D%225%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M60%2034c4-8%2014-10%2018-6-2%206-10%2010-18%206z%22%20fill%3D%22%2322c55e%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 2
+    },
+    {
+      "id": "pla-3",
+      "comercioId": "com-1",
+      "categoria": "Platos Principales",
+      "nombre": "Suprema Grillada con Ensalada Mixta (Sin TACC)",
+      "descripcion": "Pechuga de pollo a la plancha sin rebozar, preparada en sector libre de gluten, servida con ensalada fresca de lechuga, tomate y limón.",
+      "precioArs": 12800,
+      "fotoUrl": "",
+      "libreDeTacc": true,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-pollo",
+          "label": "Pollo",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M34%2052c0-16%2014-28%2032-28%2016%200%2028%2012%2028%2028%200%2014-12%2026-28%2026-8%200-14-3-20-7L30%2088c-4%204-10%204-13%200-3-3-3-9%201-13l18-16c-1-2-2-4-2-7z%22%20fill%3D%22%23f59e0b%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2222%22%20cy%3D%2286%22%20r%3D%225%22%20fill%3D%22%23fef3c7%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-ensalada",
+          "label": "Ensalada / Verduras",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2244%22%20cy%3D%2246%22%20r%3D%2216%22%20fill%3D%22%234ade80%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2274%22%20cy%3D%2246%22%20r%3D%2216%22%20fill%3D%22%2322c55e%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2242%22%20r%3D%2216%22%20fill%3D%22%2386efac%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2248%22%20cy%3D%2254%22%20r%3D%226%22%20fill%3D%22%23ef4444%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M22%2058h76c-4%2022-18%2034-38%2034S26%2080%2022%2058z%22%20fill%3D%22%23e2e8f0%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-tomate",
+          "label": "Salsa de tomate",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2266%22%20r%3D%2230%22%20fill%3D%22%23ef4444%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M60%2036c-6-10-16-8-18-4%208%200%2012%204%2018%204zm0%200c6-10%2016-8%2018-4-8%200-12%204-18%204zm0%200v-12%22%20fill%3D%22%2322c55e%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M44%2054c3-5%208-8%2014-8%22%20fill%3D%22none%22%20stroke%3D%22%23fecaca%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-limon",
+          "label": "Limón",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cellipse%20cx%3D%2260%22%20cy%3D%2260%22%20rx%3D%2234%22%20ry%3D%2226%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2226%22%20cy%3D%2260%22%20r%3D%225%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2294%22%20cy%3D%2260%22%20r%3D%225%22%20fill%3D%22%23fde047%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M60%2034c4-8%2014-10%2018-6-2%206-10%2010-18%206z%22%20fill%3D%22%2322c55e%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 3
+    },
+    {
+      "id": "pla-4",
+      "comercioId": "com-1",
+      "categoria": "Bebidas",
+      "nombre": "Agua Mineral sin Gas (500 ml)",
+      "descripcion": "Botella cerrada de agua mineral natural sin gas, fría o natural.",
+      "precioArs": 2200,
+      "fotoUrl": "",
+      "libreDeTacc": true,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-agua",
+          "label": "Agua",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M38%2024h44l-6%2072H44L38%2024z%22%20fill%3D%22%23e0f2fe%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M40%2050h40l-4%2044H44L40%2050z%22%20fill%3D%22%2338bdf8%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 4
+    },
+    {
+      "id": "pla-5",
+      "comercioId": "com-2",
+      "categoria": "Cafetería y Panadería",
+      "nombre": "Café con Leche y 3 Medialunas de Manteca",
+      "descripcion": "Taza grande de café expreso con leche espumada acompañado de tres medialunas artesanales glaseadas.",
+      "precioArs": 5800,
+      "fotoUrl": "/src/assets/images/dish_cafe_medialunas_1795101212622.jpg",
+      "libreDeTacc": false,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-cafe",
+          "label": "Café",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M30%2046h46v24c0%2014-10%2024-23%2024S30%2084%2030%2070V46z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M34%2050h38v18c0%2010-8%2018-19%2018s-19-8-19-18V50z%22%20fill%3D%22%2378350f%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M76%2052h10c6%200%2010%204%2010%2010s-4%2010-10%2010H76%22%20fill%3D%22none%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M22%2096h64%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M44%2026c-4%206%204%2010%200%2014M58%2024c-4%206%204%2010%200%2014%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-leche",
+          "label": "Leche",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M42%2022h36l6%2018v54H36V40l6-18z%22%20fill%3D%22%23eff6ff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2244%22%20y%3D%2216%22%20width%3D%2232%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%233b82f6%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M36%2052h48v24H36z%22%20fill%3D%22%2393c5fd%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-medialuna",
+          "label": "Medialuna",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M24%2078c4-24%2022-36%2036-36s32%2012%2036%2036c-12-8-22-12-36-12s-24%204-36%2012z%22%20fill%3D%22%23f59e0b%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M44%2046l-4%2022M60%2042v24M76%2046l4%2022%22%20stroke%3D%22%2392400e%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 1
+    },
+    {
+      "id": "pla-6",
+      "comercioId": "com-2",
+      "categoria": "Bebidas",
+      "nombre": "Submarino con Chocolate Apto Celíacos",
+      "descripcion": "Vaso de leche caliente entera con barra de chocolate semiamargo certificada sin gluten.",
+      "precioArs": 4500,
+      "fotoUrl": "",
+      "libreDeTacc": true,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-leche",
+          "label": "Leche",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M42%2022h36l6%2018v54H36V40l6-18z%22%20fill%3D%22%23eff6ff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2244%22%20y%3D%2216%22%20width%3D%2232%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%233b82f6%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M36%2052h48v24H36z%22%20fill%3D%22%2393c5fd%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-chocolate",
+          "label": "Chocolate",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2234%22%20y%3D%2220%22%20width%3D%2252%22%20height%3D%2278%22%20rx%3D%226%22%20fill%3D%22%2378350f%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M34%2046h52M34%2072h52M60%2020v78%22%20stroke%3D%22%23451a03%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 2
+    },
+    {
+      "id": "pla-7",
+      "comercioId": "com-3",
+      "categoria": "Heladería",
+      "nombre": "Copa de Helado Artesanal (2 Bochas)",
+      "descripcion": "Dos bochas generosas a elección: Dulce de Leche Granizado y Chocolate Amargo. Consultar opción en vasito sin oblea apto celíacos.",
+      "precioArs": 6200,
+      "fotoUrl": "/src/assets/images/dish_helado_artesanal_1795101212146.jpg",
+      "libreDeTacc": true,
+      "disponible": true,
+      "pictogramas": [
+        {
+          "id": "cat-helado",
+          "label": "Helado",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2260%22%20cy%3D%2240%22%20r%3D%2222%22%20fill%3D%22%23f472b6%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2248%22%20cy%3D%2248%22%20r%3D%2214%22%20fill%3D%22%23fde68a%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%20%20%3Ccircle%20cx%3D%2272%22%20cy%3D%2248%22%20r%3D%2214%22%20fill%3D%22%2378350f%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M36%2056h48l-24%2046-24-46z%22%20fill%3D%22%23f59e0b%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-dulce-leche",
+          "label": "Dulce de leche",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2234%22%20y%3D%2236%22%20width%3D%2252%22%20height%3D%2260%22%20rx%3D%228%22%20fill%3D%22%23b45309%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2238%22%20y%3D%2224%22%20width%3D%2244%22%20height%3D%2214%22%20rx%3D%224%22%20fill%3D%22%23e2e8f0%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2242%22%20y%3D%2252%22%20width%3D%2236%22%20height%3D%2224%22%20rx%3D%224%22%20fill%3D%22%23fef3c7%22%20stroke%3D%22%23111827%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-chocolate",
+          "label": "Chocolate",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2234%22%20y%3D%2220%22%20width%3D%2252%22%20height%3D%2278%22%20rx%3D%226%22%20fill%3D%22%2378350f%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M34%2046h52M34%2072h52M60%2020v78%22%20stroke%3D%22%23451a03%22%20stroke-width%3D%223.5%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        },
+        {
+          "id": "cat-leche",
+          "label": "Leche",
+          "imageUrl": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Crect%20width%3D%22120%22%20height%3D%22120%22%20rx%3D%2212%22%20fill%3D%22%23ffffff%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M42%2022h36l6%2018v54H36V40l6-18z%22%20fill%3D%22%23eff6ff%22%20stroke%3D%22%23111827%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2244%22%20y%3D%2216%22%20width%3D%2232%22%20height%3D%228%22%20rx%3D%222%22%20fill%3D%22%233b82f6%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%20%20%3Cpath%20d%3D%22M36%2052h48v24H36z%22%20fill%3D%22%2393c5fd%22%20stroke%3D%22%23111827%22%20stroke-width%3D%223%22%2F%3E%0A%20%20%20%20%3C%2Fsvg%3E",
+          "source": "catalogo"
+        }
+      ],
+      "orden": 1
+    }
+  ],
+  "customPictograms": []
+}

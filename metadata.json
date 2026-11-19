@@ -1,0 +1,6 @@
+{
+  "name": "Carta Inclusiva — Vicuña Mackenna",
+  "description": "Plataforma municipal para confeccionar, imprimir en formato A4 y publicar cartas gastronómicas accesibles con pictogramas ARASAAC, sistema Braille, sello Sin TACC y lectura en voz multilingüe por código QR.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
