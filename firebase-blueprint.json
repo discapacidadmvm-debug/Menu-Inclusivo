@@ -1,0 +1,298 @@
+{
+  "entities": {
+    "Comercio": {
+      "title": "Comercio",
+      "description": "Establecimiento gastronómico adherido al programa Carta Inclusiva (datos públicos del local y vigencia anual).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "nombre": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "rubro": {
+          "type": "string",
+          "enum": [
+            "Restaurante",
+            "Bar",
+            "Café",
+            "Heladería",
+            "Confitería",
+            "Casa de Comidas"
+          ],
+          "maxLength": 40
+        },
+        "direccion": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "telefono": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "fechaHabilitacion": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "activa": {
+          "type": "boolean"
+        },
+        "obleaNumero": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "slug",
+        "nombre",
+        "rubro",
+        "direccion",
+        "telefono",
+        "fechaHabilitacion",
+        "activa",
+        "obleaNumero",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ComercioCredential": {
+      "title": "ComercioCredential",
+      "description": "Credencial municipal aislada (código de acceso habilitado por la Municipalidad) asociada a un comercio.",
+      "type": "object",
+      "properties": {
+        "comercioId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "accessCode": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 80
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["comercioId", "accessCode", "updatedAt"]
+    },
+    "ComercioMember": {
+      "title": "ComercioMember",
+      "description": "Vínculo de autorización verificado entre un usuario autenticado y un comercio mediante el código municipal.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "comercioId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "accessCode": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 80
+        },
+        "joinedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "comercioId", "accessCode", "joinedAt"]
+    },
+    "PlatoMenu": {
+      "title": "PlatoMenu",
+      "description": "Plato o bebida de la carta inclusiva con precio en ARS, foto, sello Libre de TACC y pictogramas ARASAAC.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "comercioId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "categoria": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "nombre": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "descripcion": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "precioArs": {
+          "type": "number"
+        },
+        "fotoUrl": {
+          "type": "string",
+          "maxLength": 700000
+        },
+        "libreDeTacc": {
+          "type": "boolean"
+        },
+        "disponible": {
+          "type": "boolean"
+        },
+        "pictogramas": {
+          "type": "array"
+        },
+        "orden": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "comercioId",
+        "categoria",
+        "nombre",
+        "descripcion",
+        "precioArs",
+        "fotoUrl",
+        "libreDeTacc",
+        "disponible",
+        "pictogramas",
+        "orden",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CustomPictogram": {
+      "title": "CustomPictogram",
+      "description": "Pictograma personalizado subido por un comercio cuando no existe uno apto en ARASAAC.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "comercioId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "imageUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 250000
+        },
+        "source": {
+          "type": "string",
+          "enum": ["custom"],
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "comercioId", "label", "imageUrl", "source", "createdAt"]
+    },
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Administrador municipal habilitado para gestionar comercios y credenciales.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/comercios/{comercioId}": {
+      "schema": { "$ref": "#/entities/Comercio" },
+      "description": "Listado público de establecimientos adheridos con su fecha de habilitación anual y oblea."
+    },
+    "/comercios_credentials/{comercioId}": {
+      "schema": { "$ref": "#/entities/ComercioCredential" },
+      "description": "Contraseñas de acceso asignadas por la Municipalidad a cada comercio (aisladas del acceso público)."
+    },
+    "/comercios/{comercioId}/members/{memberUid}": {
+      "schema": { "$ref": "#/entities/ComercioMember" },
+      "description": "Cuentas Google verificadas habilitadas para editar la carta de un comercio tras validar su contraseña municipal."
+    },
+    "/comercios/{comercioId}/platos/{platoId}": {
+      "schema": { "$ref": "#/entities/PlatoMenu" },
+      "description": "Platos y bebidas de la carta inclusiva pertenecientes a un comercio."
+    },
+    "/comercios/{comercioId}/pictogramasCustom/{pictoId}": {
+      "schema": { "$ref": "#/entities/CustomPictogram" },
+      "description": "Pictogramas de ingredientes cargados por el comercio."
+    },
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Administradores municipales autorizados."
+    }
+  }
+}

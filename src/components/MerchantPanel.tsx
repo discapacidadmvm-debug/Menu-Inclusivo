@@ -17,6 +17,9 @@ import {
   QrCode,
   UtensilsCrossed,
 } from 'lucide-react';
+import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { auth, googleProvider } from '../firebase.ts';
+import { fsIsUserAdmin, fsSeedInitialDataIfEmpty } from '../utils/firestoreService.ts';
 import {
   CategoriaPlato,
   ComercioPublico,
@@ -84,7 +87,11 @@ const SAMPLE_PHOTOS = [
   },
 ];
 
-async function fileToCompressedDataUrl(file: File, maxWidth = 900): Promise<string> {
+async function fileToCompressedDataUrl(
+  file: File,
+  maxWidth = 900,
+  maxBytes = 420000
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
@@ -106,7 +113,13 @@ async function fileToCompressedDataUrl(file: File, maxWidth = 900): Promise<stri
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+        let quality = 0.84;
+        let dataUrl = canvas.toDataURL('image/jpeg', quality);
+        while (dataUrl.length > maxBytes && quality > 0.35) {
+          quality -= 0.12;
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        resolve(dataUrl);
       };
       img.src = String(reader.result);
     };
@@ -117,6 +130,9 @@ async function fileToCompressedDataUrl(file: File, maxWidth = 900): Promise<stri
 export const MerchantPanel: React.FC<MerchantPanelProps> = ({
   onOpenDigitalMenu,
 }) => {
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(auth.currentUser);
+  const [googleConnecting, setGoogleConnecting] = useState(false);
+
   const [comerciosList, setComerciosList] = useState<ComercioPublico[]>([]);
   const [selectedComercioId, setSelectedComercioId] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -165,15 +181,42 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
   const [uploadingCustom, setUploadingCustom] = useState(false);
 
   useEffect(() => {
-    apiGetPublicComercios()
-      .then((list) => {
-        setComerciosList(list);
-        if (list.length > 0) {
-          setSelectedComercioId((prev) => prev || list[0].id);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
+      if (user) {
+        const isAdm = await fsIsUserAdmin(user);
+        if (isAdm) {
+          await fsSeedInitialDataIfEmpty().catch(() => false);
         }
-      })
-      .catch(() => {});
+      }
+      apiGetPublicComercios()
+        .then((list) => {
+          setComerciosList(list);
+          if (list.length > 0) {
+            setSelectedComercioId((prev) => prev || list[0].id);
+          }
+        })
+        .catch(() => {});
+    });
+    return () => unsub();
   }, []);
+
+  const handleConnectGoogle = async () => {
+    setGoogleConnecting(true);
+    setAuthError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('popup-closed-by-user')) {
+        setAuthError('Se cerró la ventana de inicio de sesión.');
+      } else {
+        setAuthError('No se pudo conectar la cuenta Google. Verificá los popups del navegador.');
+      }
+    } finally {
+      setGoogleConnecting(false);
+    }
+  };
 
   const loadMerchantMenu = async (comercioId: string) => {
     const data = await apiGetMerchantMenu(comercioId);
@@ -186,6 +229,10 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firebaseUser) {
+      setAuthError('Primero conectá tu cuenta Google arriba para verificar tu identidad.');
+      return;
+    }
     setAuthLoading(true);
     setAuthError('');
     try {
@@ -195,8 +242,12 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
         return;
       }
       await loadMerchantMenu(result.comercio.id);
-    } catch {
-      setAuthError('Error de conexión.');
+    } catch (err) {
+      setAuthError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'Error de conexión con Firestore.'
+      );
     } finally {
       setAuthLoading(false);
     }
@@ -273,7 +324,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const dataUrl = await fileToCompressedDataUrl(file, 960);
+      const dataUrl = await fileToCompressedDataUrl(file, 960, 420000);
       setFotoUrl(dataUrl);
     } catch {
       setDishError('No se pudo procesar la foto seleccionada.');
@@ -286,7 +337,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const dataUrl = await fileToCompressedDataUrl(file, 320);
+      const dataUrl = await fileToCompressedDataUrl(file, 320, 140000);
       setCustomPreview(dataUrl);
     } catch {
       setDishError('No se pudo leer la imagen del pictograma.');
@@ -382,8 +433,55 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
               Acceso para Comercios
             </h1>
             <p className="text-sm text-slate-600">
-              Ingresá con el establecimiento y la contraseña habilitada por la Municipalidad de Vicuña Mackenna.
+              Conectá tu cuenta Google e ingresá la contraseña habilitada por la Municipalidad de Vicuña Mackenna para sincronizar tu carta en la nube.
             </p>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs text-slate-700">
+              {firebaseUser ? (
+                <>
+                  <span className="font-semibold text-emerald-800 block">
+                    Cuenta Google conectada
+                  </span>
+                  <span className="font-mono-tabular text-slate-600">
+                    {firebaseUser.email}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold text-slate-900 block">
+                    Paso 1: Identificación con Google
+                  </span>
+                  <span className="text-slate-600">
+                    Requerido para guardar cambios en Firestore.
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleConnectGoogle}
+                disabled={googleConnecting}
+                className="px-3 py-1.5 text-xs font-semibold bg-blue-700 text-white rounded-lg hover:bg-blue-800 cursor-pointer disabled:opacity-60"
+              >
+                {googleConnecting
+                  ? 'Conectando...'
+                  : firebaseUser
+                    ? 'Cambiar cuenta'
+                    : 'Conectar Google'}
+              </button>
+              {firebaseUser && (
+                <button
+                  type="button"
+                  onClick={() => void signOut(auth)}
+                  className="px-2.5 py-1.5 text-xs font-medium bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
+                >
+                  Salir
+                </button>
+              )}
+            </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -432,7 +530,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
 
             <button
               type="submit"
-              disabled={authLoading || !selectedComercioId}
+              disabled={authLoading || !selectedComercioId || !firebaseUser}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-60"
             >
               <KeyRound className="w-4 h-4" />

@@ -13,6 +13,9 @@ import {
   LogOut,
   Edit3,
 } from 'lucide-react';
+import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { auth, googleProvider } from '../firebase.ts';
+import { fsIsUserAdmin, fsSeedInitialDataIfEmpty } from '../utils/firestoreService.ts';
 import { ComercioAdmin, RubroComercio } from '../types.ts';
 import {
   addOneYearIso,
@@ -21,7 +24,6 @@ import {
   getTodayArIso,
 } from '../utils/dates.ts';
 import {
-  apiAuthAdmin,
   apiCreateComercio,
   apiDeleteComercio,
   apiGetAdminComercios,
@@ -44,8 +46,9 @@ const RUBROS: RubroComercio[] = [
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onOpenDigitalMenu,
 }) => {
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(auth.currentUser);
+  const [authChecking, setAuthChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
@@ -78,27 +81,60 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   useEffect(() => {
-    if (authenticated) {
-      loadComercios();
-    }
-  }, [authenticated]);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
+      setAuthChecking(true);
+      setAuthError('');
+      if (!user) {
+        setAuthenticated(false);
+        setAuthChecking(false);
+        return;
+      }
+      const adminOk = await fsIsUserAdmin(user);
+      if (adminOk) {
+        setAuthenticated(true);
+        try {
+          await fsSeedInitialDataIfEmpty();
+          await loadComercios();
+        } catch (err) {
+          setAuthError(
+            err instanceof Error
+              ? err.message
+              : 'No se pudo cargar la base de datos Firestore.'
+          );
+        }
+      } else {
+        setAuthenticated(false);
+        setAuthError(
+          `La cuenta ${user.email || ''} no tiene permisos de Administración Municipal.`
+        );
+      }
+      setAuthChecking(false);
+    });
+    return () => unsub();
+  }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     setAuthLoading(true);
     setAuthError('');
     try {
-      const result = await apiAuthAdmin(adminPasswordInput);
-      if (!result.ok) {
-        setAuthError(result.error || 'Contraseña incorrecta.');
-        return;
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('popup-closed-by-user')) {
+        setAuthError('Se cerró la ventana de inicio de sesión.');
+      } else {
+        setAuthError('No se pudo iniciar sesión con Google. Verificá los popups del navegador.');
       }
-      setAuthenticated(true);
-    } catch {
-      setAuthError('No se pudo verificar el acceso municipal.');
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    setAuthenticated(false);
+    setComercios([]);
   };
 
   const resetForm = () => {
@@ -239,53 +275,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               Administración Municipal
             </h1>
             <p className="text-sm text-slate-600">
-              Secretaría de Desarrollo Social · Área de Bromatología. Ingresá para habilitar comercios, asignar contraseñas y controlar vencimientos anuales.
+              Secretaría de Desarrollo Social · Área de Bromatología. Ingresá con la cuenta Google municipal para habilitar comercios, asignar contraseñas y sincronizar la base Firestore en la nube.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="admin-pwd"
-                className="block text-sm font-medium text-slate-800"
+          {authChecking ? (
+            <p className="text-sm text-slate-600 py-2">Verificando sesión municipal...</p>
+          ) : (
+            <div className="space-y-4">
+              {firebaseUser && (
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-700 space-y-1">
+                  <p>
+                    Sesión actual: <strong className="text-slate-900">{firebaseUser.email}</strong>
+                  </p>
+                </div>
+              )}
+
+              {authError && (
+                <p className="text-sm text-red-700 font-medium">{authError}</p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={authLoading}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-60"
               >
-                Contraseña de Administrador
-              </label>
-              <input
-                id="admin-pwd"
-                type="password"
-                value={adminPasswordInput}
-                onChange={(e) => setAdminPasswordInput(e.target.value)}
-                placeholder="Ingresá la clave municipal"
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-                required
-              />
+                <KeyRound className="w-4 h-4" />
+                {authLoading
+                  ? 'Conectando con Google...'
+                  : firebaseUser
+                    ? 'Cambiar cuenta Google (Municipio)'
+                    : 'Ingresar con Google (Municipio)'}
+              </button>
+
+              {firebaseUser && (
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full px-4 py-2 text-xs font-medium bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 cursor-pointer"
+                >
+                  Cerrar sesión
+                </button>
+              )}
             </div>
-
-            {authError && (
-              <p className="text-sm text-red-700 font-medium">{authError}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-60"
-            >
-              <KeyRound className="w-4 h-4" />
-              {authLoading ? 'Verificando...' : 'Ingresar al Panel Municipal'}
-            </button>
-          </form>
-
-          <div className="pt-4 border-t border-slate-200 text-xs text-slate-600 flex items-center justify-between gap-2">
-            <span>Clave de demostración municipal:</span>
-            <button
-              type="button"
-              onClick={() => setAdminPasswordInput('mackenna2026')}
-              className="font-mono-tabular font-semibold text-blue-700 hover:underline cursor-pointer"
-            >
-              mackenna2026 (completar)
-            </button>
-          </div>
+          )}
         </div>
       </div>
     );
@@ -302,6 +336,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
             Habilitaciones de Cartas Inclusivas
           </h1>
+          {firebaseUser?.email && (
+            <p className="text-xs text-slate-500 mt-0.5">
+              Conectado en Firebase como {firebaseUser.email}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -315,7 +354,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setAuthenticated(false)}
+            onClick={handleSignOut}
             className="inline-flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 whitespace-nowrap cursor-pointer"
           >
             <LogOut className="w-4 h-4" />

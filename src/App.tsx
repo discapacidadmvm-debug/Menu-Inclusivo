@@ -3,6 +3,7 @@ import { LandingPortal } from './components/LandingPortal.tsx';
 import { MerchantPanel } from './components/MerchantPanel.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { PublicDigitalMenu } from './components/PublicDigitalMenu.tsx';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 
 type AppView = 'home' | 'merchant' | 'admin' | 'carta';
 
@@ -73,17 +74,20 @@ export default function App() {
 
   if (view === 'carta' && cartaSlug) {
     return (
-      <PublicDigitalMenu
-        slug={cartaSlug}
-        focusedPlatoId={focusedPlatoId}
-        onClearFocus={() => openDigitalMenu(cartaSlug, '')}
-        onExit={() => navigateTo('home')}
-      />
+      <ErrorBoundary>
+        <PublicDigitalMenu
+          slug={cartaSlug}
+          focusedPlatoId={focusedPlatoId}
+          onClearFocus={() => openDigitalMenu(cartaSlug, '')}
+          onExit={() => navigateTo('home')}
+        />
+      </ErrorBoundary>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       {/* Barra superior: Contrato de 3 zonas (oculta en impresión A4) */}
       <header className="no-print sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-8">
@@ -204,6 +208,7 @@ export default function App() {
           </span>
         </div>
       </footer>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

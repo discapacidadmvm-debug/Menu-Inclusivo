@@ -92,13 +92,13 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
   }, [slug]);
 
   useEffect(() => {
-    if (idioma === 'es-AR') {
-      setTranslations({});
+    if (idioma === 'es-AR' || platos.length === 0) {
+      if (idioma === 'es-AR') setTranslations({});
       return;
     }
     let active = true;
     setTranslating(true);
-    apiTranslateMenu(slug, idioma)
+    apiTranslateMenu(slug, idioma, platos)
       .then((tr) => {
         if (active && tr) {
           setTranslations(tr);
@@ -114,7 +114,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
     return () => {
       active = false;
     };
-  }, [idioma, slug]);
+  }, [idioma, slug, platos]);
 
   const strings = UI_STRINGS[idioma];
 

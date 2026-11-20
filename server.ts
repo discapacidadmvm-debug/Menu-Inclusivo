@@ -584,9 +584,10 @@ async function startServer() {
 
   // --- TRADUCCIÓN MULTILINGÜE DE MENÚ DIGITAL ---
   app.post('/api/translate-menu', async (req, res) => {
-    const { slug, targetLang } = req.body as {
+    const { slug, targetLang, platos: incomingPlatos } = req.body as {
       slug?: string;
       targetLang?: IdiomaCodigo;
+      platos?: PlatoMenu[];
     };
 
     if (!slug || !targetLang || targetLang === 'es-AR') {
@@ -594,21 +595,28 @@ async function startServer() {
       return;
     }
 
-    const db = loadDb();
-    const comercio = db.comercios.find((c) => c.slug === slug || c.id === slug);
-    if (!comercio) {
-      res.status(404).json({ error: 'Comercio no encontrado.' });
-      return;
+    let platos: PlatoMenu[] = Array.isArray(incomingPlatos) ? incomingPlatos : [];
+    let cacheScope = slug;
+
+    if (platos.length === 0) {
+      const db = loadDb();
+      const comercio = db.comercios.find((c) => c.slug === slug || c.id === slug);
+      if (!comercio) {
+        res.json({ translations: {} });
+        return;
+      }
+      cacheScope = comercio.id;
+      platos = db.platos.filter((p) => p.comercioId === comercio.id && p.disponible);
     }
 
-    const cacheKey = `${comercio.id}:${targetLang}`;
+    const signature = platos.map((p) => `${p.id}:${p.nombre}`).join('|');
+    const cacheKey = `${cacheScope}:${targetLang}:${signature}`;
     const cached = translationCache.get(cacheKey);
     if (cached) {
       res.json({ translations: cached });
       return;
     }
 
-    const platos = db.platos.filter((p) => p.comercioId === comercio.id && p.disponible);
     if (!ai) {
       const fb = fallbackTranslatePlatos(platos, targetLang);
       res.json({ translations: fb });

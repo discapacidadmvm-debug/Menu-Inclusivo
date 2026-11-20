@@ -1,0 +1,254 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Startup connectivity check
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // --- Helper Primitives ---
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'discapacidadgovmvm@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isComercioMember(comercioId) {
+      return isVerifiedUser() &&
+        exists(/databases/$(database)/documents/comercios/$(comercioId)/members/$(request.auth.uid)) &&
+        exists(/databases/$(database)/documents/comercios_credentials/$(comercioId)) &&
+        get(/databases/$(database)/documents/comercios/$(comercioId)/members/$(request.auth.uid)).data.accessCode ==
+          get(/databases/$(database)/documents/comercios_credentials/$(comercioId)).data.accessCode;
+    }
+
+    // --- Validation Blueprints ---
+    function isValidComercio(data) {
+      return data.keys().hasAll([
+          'id', 'slug', 'nombre', 'rubro', 'direccion', 'telefono',
+          'fechaHabilitacion', 'activa', 'obleaNumero', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'slug', 'nombre', 'rubro', 'direccion', 'telefono',
+          'fechaHabilitacion', 'activa', 'obleaNumero', 'createdAt', 'updatedAt'
+        ]) &&
+        isValidId(data.id) &&
+        data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 120 && data.slug.matches('^[a-z0-9\\-]+$') &&
+        data.nombre is string && data.nombre.size() >= 1 && data.nombre.size() <= 140 &&
+        data.rubro is string && data.rubro in ['Restaurante', 'Bar', 'Café', 'Heladería', 'Confitería', 'Casa de Comidas'] &&
+        data.direccion is string && data.direccion.size() <= 200 &&
+        data.telefono is string && data.telefono.size() <= 50 &&
+        data.fechaHabilitacion is string && data.fechaHabilitacion.size() == 10 && data.fechaHabilitacion.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.activa is bool &&
+        data.obleaNumero is string && data.obleaNumero.size() >= 1 && data.obleaNumero.size() <= 40 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidCredential(data, comercioId) {
+      return data.keys().hasAll(['comercioId', 'accessCode', 'updatedAt']) &&
+        data.keys().hasOnly(['comercioId', 'accessCode', 'updatedAt']) &&
+        data.comercioId == comercioId &&
+        isValidId(data.comercioId) &&
+        data.accessCode is string && data.accessCode.size() >= 4 && data.accessCode.size() <= 80 &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidMember(data, comercioId, memberUid) {
+      return data.keys().hasAll(['uid', 'comercioId', 'accessCode', 'joinedAt']) &&
+        data.keys().hasOnly(['uid', 'comercioId', 'accessCode', 'joinedAt']) &&
+        data.uid == memberUid &&
+        isValidId(data.uid) &&
+        data.comercioId == comercioId &&
+        isValidId(data.comercioId) &&
+        data.accessCode is string && data.accessCode.size() >= 4 && data.accessCode.size() <= 80 &&
+        data.joinedAt is timestamp;
+    }
+
+    function isValidPlato(data, comercioId, platoId) {
+      return data.keys().hasAll([
+          'id', 'comercioId', 'categoria', 'nombre', 'descripcion', 'precioArs',
+          'fotoUrl', 'libreDeTacc', 'disponible', 'pictogramas', 'orden', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'comercioId', 'categoria', 'nombre', 'descripcion', 'precioArs',
+          'fotoUrl', 'libreDeTacc', 'disponible', 'pictogramas', 'orden', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id == platoId &&
+        isValidId(data.id) &&
+        data.comercioId == comercioId &&
+        isValidId(data.comercioId) &&
+        data.categoria is string && data.categoria.size() >= 1 && data.categoria.size() <= 60 &&
+        data.nombre is string && data.nombre.size() >= 1 && data.nombre.size() <= 160 &&
+        data.descripcion is string && data.descripcion.size() <= 1000 &&
+        (data.precioArs is int || data.precioArs is float) && data.precioArs >= 0 && data.precioArs <= 10000000 &&
+        data.fotoUrl is string && data.fotoUrl.size() <= 700000 &&
+        data.libreDeTacc is bool &&
+        data.disponible is bool &&
+        data.pictogramas is list && data.pictogramas.size() <= 25 &&
+        (data.pictogramas.size() == 0 || (
+          data.pictogramas[0] is map &&
+          data.pictogramas[0].keys().hasAll(['id', 'label', 'imageUrl', 'source'])
+        )) &&
+        (data.orden is int || data.orden is float) && data.orden >= 0 && data.orden <= 10000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidCustomPicto(data, comercioId, pictoId) {
+      return data.keys().hasAll(['id', 'comercioId', 'label', 'imageUrl', 'source', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'comercioId', 'label', 'imageUrl', 'source', 'createdAt']) &&
+        data.id == pictoId &&
+        isValidId(data.id) &&
+        data.comercioId == comercioId &&
+        isValidId(data.comercioId) &&
+        data.label is string && data.label.size() >= 1 && data.label.size() <= 80 &&
+        data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 250000 &&
+        data.source == 'custom' &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidAdminDoc(data, uid) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'createdAt']) &&
+        data.uid == uid &&
+        isValidId(data.uid) &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 200 &&
+        data.createdAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+    match /admins/{uid} {
+      allow get: if isVerifiedUser() && isValidId(uid) && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerifiedUser() && isValidId(uid) && isValidAdminDoc(incoming(), uid) && incoming().createdAt == request.time && isAdmin();
+      allow update: if false;
+      allow delete: if isVerifiedUser() && isValidId(uid) && isAdmin();
+    }
+
+    match /comercios_credentials/{comercioId} {
+      allow get: if isVerifiedUser() && isValidId(comercioId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isVerifiedUser() && isValidId(comercioId) &&
+        isValidCredential(incoming(), comercioId) &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+      allow update: if isVerifiedUser() && isValidId(comercioId) &&
+        isValidCredential(incoming(), comercioId) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['accessCode', 'updatedAt']) &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+      allow delete: if isVerifiedUser() && isValidId(comercioId) && isAdmin();
+    }
+
+    match /comercios/{comercioId} {
+      allow get: if isValidId(comercioId);
+      allow list: if true;
+      allow create: if isVerifiedUser() && isValidId(comercioId) &&
+        isValidComercio(incoming()) &&
+        incoming().id == comercioId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+      allow update: if isVerifiedUser() && isValidId(comercioId) &&
+        isValidComercio(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'slug', 'nombre', 'rubro', 'direccion', 'telefono',
+          'fechaHabilitacion', 'activa', 'obleaNumero', 'updatedAt'
+        ]) &&
+        isAdmin();
+      allow delete: if isVerifiedUser() && isValidId(comercioId) && isAdmin();
+
+      match /members/{memberUid} {
+        allow get: if isVerifiedUser() && isValidId(comercioId) && isValidId(memberUid) &&
+          (request.auth.uid == memberUid || isAdmin());
+        allow list: if isVerifiedUser() && (resource.data.uid == request.auth.uid || isAdmin());
+        allow create: if isVerifiedUser() && isValidId(comercioId) && isValidId(memberUid) &&
+          isValidMember(incoming(), comercioId, memberUid) &&
+          incoming().joinedAt == request.time &&
+          exists(/databases/$(database)/documents/comercios/$(comercioId)) && (
+            isAdmin() || (
+              request.auth.uid == memberUid &&
+              get(/databases/$(database)/documents/comercios_credentials/$(comercioId)).data.accessCode == incoming().accessCode
+            )
+          );
+        allow update: if isVerifiedUser() && isValidId(comercioId) && isValidId(memberUid) &&
+          isValidMember(incoming(), comercioId, memberUid) &&
+          incoming().joinedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['accessCode', 'joinedAt']) && (
+            isAdmin() || (
+              request.auth.uid == memberUid &&
+              get(/databases/$(database)/documents/comercios_credentials/$(comercioId)).data.accessCode == incoming().accessCode
+            )
+          );
+        allow delete: if isVerifiedUser() && isValidId(comercioId) && isValidId(memberUid) &&
+          (request.auth.uid == memberUid || isAdmin());
+      }
+
+      match /platos/{platoId} {
+        allow get: if isValidId(comercioId) && isValidId(platoId);
+        allow list: if true;
+        allow create: if isVerifiedUser() && isValidId(comercioId) && isValidId(platoId) &&
+          isValidPlato(incoming(), comercioId, platoId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          exists(/databases/$(database)/documents/comercios/$(comercioId)) &&
+          (isAdmin() || isComercioMember(comercioId));
+        allow update: if isVerifiedUser() && isValidId(comercioId) && isValidId(platoId) &&
+          isValidPlato(incoming(), comercioId, platoId) &&
+          incoming().id == existing().id &&
+          incoming().comercioId == existing().comercioId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'categoria', 'nombre', 'descripcion', 'precioArs',
+            'fotoUrl', 'libreDeTacc', 'disponible', 'pictogramas', 'orden', 'updatedAt'
+          ]) &&
+          (isAdmin() || isComercioMember(comercioId));
+        allow delete: if isVerifiedUser() && isValidId(comercioId) && isValidId(platoId) &&
+          (isAdmin() || isComercioMember(comercioId));
+      }
+
+      match /pictogramasCustom/{pictoId} {
+        allow get: if isValidId(comercioId) && isValidId(pictoId);
+        allow list: if true;
+        allow create: if isVerifiedUser() && isValidId(comercioId) && isValidId(pictoId) &&
+          isValidCustomPicto(incoming(), comercioId, pictoId) &&
+          incoming().createdAt == request.time &&
+          exists(/databases/$(database)/documents/comercios/$(comercioId)) &&
+          (isAdmin() || isComercioMember(comercioId));
+        allow update: if false;
+        allow delete: if isValidId(comercioId) && isValidId(pictoId) && isVerifiedUser() &&
+          (isAdmin() || isComercioMember(comercioId));
+      }
+    }
+  }
+}
