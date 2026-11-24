@@ -1186,9 +1186,6 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                           <p className="text-[11px] font-mono-tabular text-slate-600">
                             Referencia: {br.plain}
                           </p>
-                          <p className="text-[10.5px] text-slate-500">
-                            En impresión A4: celda 4,0×6,5 mm · puntos 2,5 mm · paso H 6,3 mm × V 10,0 mm · pictos máx. 15 mm (3 platos/hoja).
-                          </p>
                         </>
                       );
                     })()}
@@ -1341,9 +1338,6 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                               </p>
                               <p className="text-[11px] font-mono-tabular text-slate-500">
                                 {br.plain}
-                              </p>
-                              <p className="text-[10px] text-slate-500">
-                                Impresión A4: Braille 4,0×6,5 mm (paso 6,3×10,0 mm) · Pictogramas máx. 15 mm
                               </p>
                             </>
                           );

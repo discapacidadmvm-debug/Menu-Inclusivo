@@ -1,20 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Printer,
-  Download,
-  Eye,
-  UtensilsCrossed,
-  Grid,
-  Ruler,
-  SlidersHorizontal,
-  RotateCcw,
-} from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Printer, Download, Eye, UtensilsCrossed } from 'lucide-react';
 import { CategoriaPlato, ComercioPublico, PlatoMenu } from '../types.ts';
 import { formatArs, formatFechaAr } from '../utils/dates.ts';
 import {
   BRAILLE_GEOMETRY_PRESETS,
   BRAILLE_SPECS_MM,
-  BrailleOrientationMode,
   buildBraillePlainTextExport,
   buildMenuBrailleLines,
   formatDishPriceBraille,
@@ -32,24 +22,6 @@ interface A4PrintSuiteProps {
 }
 
 type PrintMode = 'pictogramas' | 'braille' | 'oblea_qr';
-
-interface BrailleCalibrationState {
-  orientation: BrailleOrientationMode;
-  offsetXMm: number;
-  offsetYMm: number;
-  showEmptyDots: boolean;
-  showVerificationRuler: boolean;
-}
-
-const CALIBRATION_STORAGE_KEY = 'carta_braille_calibration_v1';
-
-const DEFAULT_CALIBRATION: BrailleCalibrationState = {
-  orientation: 'slate_portrait',
-  offsetXMm: 0,
-  offsetYMm: 0,
-  showEmptyDots: true,
-  showVerificationRuler: false,
-};
 
 const CATEGORIA_ORDER: Record<CategoriaPlato, number> = {
   Desayunos: 1,
@@ -81,89 +53,6 @@ function chunkArray<T>(items: T[], size: number): T[][] {
   return pages;
 }
 
-function loadCalibration(): BrailleCalibrationState {
-  if (typeof window === 'undefined') return DEFAULT_CALIBRATION;
-  try {
-    const raw = window.localStorage.getItem(CALIBRATION_STORAGE_KEY);
-    if (!raw) return DEFAULT_CALIBRATION;
-    const parsed = JSON.parse(raw);
-    return {
-      orientation:
-        parsed.orientation === 'slate_rotated_90'
-          ? 'slate_rotated_90'
-          : 'slate_portrait',
-      offsetXMm:
-        typeof parsed.offsetXMm === 'number' && Number.isFinite(parsed.offsetXMm)
-          ? Math.max(-30, Math.min(30, Number(parsed.offsetXMm.toFixed(1))))
-          : 0,
-      offsetYMm:
-        typeof parsed.offsetYMm === 'number' && Number.isFinite(parsed.offsetYMm)
-          ? Math.max(-30, Math.min(30, Number(parsed.offsetYMm.toFixed(1))))
-          : 0,
-      showEmptyDots:
-        typeof parsed.showEmptyDots === 'boolean' ? parsed.showEmptyDots : true,
-      showVerificationRuler:
-        typeof parsed.showVerificationRuler === 'boolean'
-          ? parsed.showVerificationRuler
-          : false,
-    };
-  } catch {
-    return DEFAULT_CALIBRATION;
-  }
-}
-
-const VerificationRulerMm: React.FC = () => {
-  const totalMm = 100;
-  const ticks = Array.from({ length: totalMm + 1 }, (_, mm) => mm);
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="104mm"
-      height="7mm"
-      viewBox="-2 0 104 7"
-      aria-label="Regla de verificación física de 100 mm"
-      style={{
-        width: '104mm',
-        height: '7mm',
-        maxWidth: 'none',
-        display: 'block',
-      }}
-    >
-      <line x1={0} y1={0.3} x2={totalMm} y2={0.3} stroke="#0f172a" strokeWidth={0.25} />
-      {ticks.map((mm) => {
-        const isCm = mm % 10 === 0;
-        const isHalf = mm % 5 === 0 && !isCm;
-        const tickLen = isCm ? 3.2 : isHalf ? 2.2 : 1.3;
-        return (
-          <g key={mm}>
-            <line
-              x1={mm}
-              y1={0.3}
-              x2={mm}
-              y2={0.3 + tickLen}
-              stroke="#0f172a"
-              strokeWidth={isCm ? 0.3 : 0.18}
-            />
-            {isCm && (
-              <text
-                x={mm}
-                y={6.2}
-                textAnchor="middle"
-                fontSize={2.3}
-                fontWeight="bold"
-                fill="#0f172a"
-                fontFamily="Verdana, Helvetica, Arial, sans-serif"
-              >
-                {mm / 10}
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
-
 export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
   comercio,
   platos,
@@ -171,22 +60,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
 }) => {
   const [mode, setMode] = useState<PrintMode>('pictogramas');
   const [brailleConGuia, setBrailleConGuia] = useState(true);
-  const [calibration, setCalibration] = useState<BrailleCalibrationState>(
-    loadCalibration
-  );
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        CALIBRATION_STORAGE_KEY,
-        JSON.stringify(calibration)
-      );
-    } catch {
-      // ignore storage errors
-    }
-  }, [calibration]);
-
-  const geometry = BRAILLE_GEOMETRY_PRESETS[calibration.orientation];
+  const geometry = BRAILLE_GEOMETRY_PRESETS.slate_portrait;
 
   const platosActivosOrdenados = useMemo(() => {
     return platos
@@ -201,20 +76,20 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
       });
   }, [platos]);
 
-  // Estrictamente 3 menúes por hoja A4
+  // 3 menúes por hoja A4
   const platosPages = useMemo(
     () => chunkArray(platosActivosOrdenados, 3),
     [platosActivosOrdenados]
   );
 
-  // Columnas máximas según ancho imprimible y paso horizontal real de tableta
-  const maxColsCard = geometry.rotated90 ? 16 : 26; // 156,5 mm o 161,5 mm <= 167 mm disponibles
-  const maxRowsCard = geometry.rotated90 ? 4 : 3;
+  // 26 celdas x 6,35 mm <= 174 mm disponibles junto al QR
+  const maxColsCard = 26;
+  const maxRowsCard = 3;
 
-  const maxColsFullSheet = geometry.rotated90 ? 18 : 28; // 176,5 mm o 174,1 mm <= 194 mm
-  const maxRowsFullSheet = geometry.rotated90 ? 37 : 25;
+  // 28 celdas x 6,35 mm <= 194 mm imprimibles A4
+  const maxColsFullSheet = 28;
+  const maxRowsFullSheet = 25;
 
-  // Líneas Braille completas para Modo 2 (Carta A4 en Braille)
   const brailleSheetPages = useMemo(() => {
     const rawLines = buildMenuBrailleLines(comercio, platosActivosOrdenados);
     const wrappedRows: BrailleSvgLine[] = [];
@@ -241,7 +116,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
     }
 
     return chunkArray(wrappedRows, maxRowsFullSheet);
-  }, [comercio, platosActivosOrdenados, maxColsFullSheet, maxRowsFullSheet]);
+  }, [comercio, platosActivosOrdenados]);
 
   const handlePrint = () => {
     window.print();
@@ -262,20 +137,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const adjustOffset = (axis: 'offsetXMm' | 'offsetYMm', delta: number) => {
-    setCalibration((prev) => ({
-      ...prev,
-      [axis]: Math.max(
-        -30,
-        Math.min(30, Number((prev[axis] + delta).toFixed(1)))
-      ),
-    }));
-  };
-
-  // Paso vertical entre tarjetas = múltiplo entero exacto del paso vertical de la tableta
-  // Estándar (stepY=10,0 mm): 9 filas = 90,0 mm (tarjeta 87,5 mm + espacio 2,5 mm)
-  // Girada 90° (stepY=6,3 mm): 14 filas = 88,2 mm (tarjeta 85,7 mm + espacio 2,5 mm)
-  const cardHeightMm = geometry.rotated90 ? 85.7 : 87.5;
+  const cardHeightMm = 87.5;
   const cardGapMm = 2.5;
 
   return (
@@ -319,42 +181,6 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {mode !== 'oblea_qr' && (
-            <>
-              <button
-                type="button"
-                onClick={() =>
-                  setCalibration((p) => ({
-                    ...p,
-                    showEmptyDots: !p.showEmptyDots,
-                  }))
-                }
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 cursor-pointer whitespace-nowrap"
-              >
-                <Grid className="w-3.5 h-3.5" />
-                {calibration.showEmptyDots
-                  ? 'Ocultar 6 puntos guía'
-                  : 'Ver 6 puntos guía'}
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setCalibration((p) => ({
-                    ...p,
-                    showVerificationRuler: !p.showVerificationRuler,
-                  }))
-                }
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 cursor-pointer whitespace-nowrap"
-              >
-                <Ruler className="w-3.5 h-3.5" />
-                {calibration.showVerificationRuler
-                  ? 'Ocultar regla 100 mm'
-                  : 'Regla control 100 mm'}
-              </button>
-            </>
-          )}
-
           {mode === 'braille' && (
             <>
               <button
@@ -382,155 +208,12 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            Imprimir formato A4 (100%)
+            Imprimir formato A4
           </button>
         </div>
       </div>
 
-      {/* Panel de calibración física de matriz Braille (mm exactos, sin píxeles) */}
-      {mode !== 'oblea_qr' && (
-        <div className="no-print bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-              <SlidersHorizontal className="w-4 h-4 text-blue-700" />
-              Calibración física con tableta Braille (100% en milímetros)
-            </div>
-            <button
-              type="button"
-              onClick={() => setCalibration(DEFAULT_CALIBRATION)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Restablecer valores
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-            <div className="lg:col-span-6 space-y-1">
-              <label className="block text-xs font-semibold text-slate-700">
-                Orientación de celdas y pasos de la tableta
-              </label>
-              <select
-                value={calibration.orientation}
-                onChange={(e) =>
-                  setCalibration((prev) => ({
-                    ...prev,
-                    orientation: e.target.value as BrailleOrientationMode,
-                  }))
-                }
-                className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg text-slate-900"
-              >
-                <option value="slate_portrait">
-                  {BRAILLE_GEOMETRY_PRESETS.slate_portrait.label}
-                </option>
-                <option value="slate_rotated_90">
-                  {BRAILLE_GEOMETRY_PRESETS.slate_rotated_90.label}
-                </option>
-              </select>
-            </div>
-
-            {/* Ajuste horizontal X independiente */}
-            <div className="lg:col-span-3 space-y-1">
-              <label className="block text-xs font-semibold text-slate-700">
-                Desplazamiento horizontal X (mm)
-              </label>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => adjustOffset('offsetXMm', -0.5)}
-                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
-                >
-                  -0,5
-                </button>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="-30"
-                  max="30"
-                  value={calibration.offsetXMm}
-                  onChange={(e) =>
-                    setCalibration((prev) => ({
-                      ...prev,
-                      offsetXMm: Math.max(
-                        -30,
-                        Math.min(30, Number(e.target.value) || 0)
-                      ),
-                    }))
-                  }
-                  className="w-full px-2 py-1.5 text-xs font-mono-tabular text-center border border-slate-300 rounded bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustOffset('offsetXMm', 0.5)}
-                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
-                >
-                  +0,5
-                </button>
-              </div>
-            </div>
-
-            {/* Ajuste vertical Y independiente */}
-            <div className="lg:col-span-3 space-y-1">
-              <label className="block text-xs font-semibold text-slate-700">
-                Desplazamiento vertical Y (mm)
-              </label>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => adjustOffset('offsetYMm', -0.5)}
-                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
-                >
-                  -0,5
-                </button>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="-30"
-                  max="30"
-                  value={calibration.offsetYMm}
-                  onChange={(e) =>
-                    setCalibration((prev) => ({
-                      ...prev,
-                      offsetYMm: Math.max(
-                        -30,
-                        Math.min(30, Number(e.target.value) || 0)
-                      ),
-                    }))
-                  }
-                  className="w-full px-2 py-1.5 text-xs font-mono-tabular text-center border border-slate-300 rounded bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => adjustOffset('offsetYMm', 0.5)}
-                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
-                >
-                  +0,5
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-            <span>
-              <strong>Geometría activa de puntos:</strong> celda{' '}
-              {geometry.cellWidthMm.toFixed(1).replace('.', ',')} ×{' '}
-              {geometry.cellHeightMm.toFixed(1).replace('.', ',')} mm · centros
-              de puntos {geometry.dotSpacingMm.toFixed(1).replace('.', ',')} mm
-              · separación libre H{' '}
-              {geometry.freeGapXMm.toFixed(1).replace('.', ',')} mm / V{' '}
-              {geometry.freeGapYMm.toFixed(1).replace('.', ',')} mm · paso H{' '}
-              {geometry.stepXMm.toFixed(1).replace('.', ',')} mm × V{' '}
-              {geometry.stepYMm.toFixed(1).replace('.', ',')} mm.
-            </span>
-            <span className="font-semibold text-slate-800">
-              Imprimir en Chrome/Edge con: Papel A4 · Márgenes: Ninguno · Escala:
-              100%
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* MODO 1: CARTA A4 CON PICTOGRAMAS (<= 15 mm) + MATRIZ BRAILLE ALINEADA A TABLETA + 3 MENÚES POR HOJA */}
+      {/* MODO 1: CARTA A4 CON PICTOGRAMAS, BRAILLE EXACTO Y QR (3 MENÚES POR HOJA) */}
       {mode === 'pictogramas' && (
         <div className="a4-scroll-wrap overflow-x-auto space-y-6">
           {platosPages.length === 0 ? (
@@ -538,8 +221,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
               className="a4-sheet-page mx-auto bg-white border border-slate-300 rounded-lg text-black flex flex-col justify-center items-center"
               style={{
                 width: '210mm',
-                minHeight: '296.5mm',
-                padding: '7mm 8mm 6mm 8mm',
+                minHeight: '297mm',
+                padding: '7mm 8mm',
                 boxSizing: 'border-box',
               }}
             >
@@ -558,20 +241,19 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                   }`}
                   style={{
                     width: '210mm',
-                    height: '296.5mm',
-                    minHeight: '296.5mm',
-                    padding: '5.5mm 8mm 4.5mm 8mm',
+                    minHeight: '297mm',
+                    padding: '7mm 8mm',
                     boxSizing: 'border-box',
                     fontFamily: 'Verdana, Helvetica, Arial, sans-serif',
                   }}
                 >
-                  {/* Encabezado compacto fijo (9 mm + 1,5 mm margen = 10,5 mm) */}
+                  {/* Encabezado compacto (8,5 mm + 1 mm margen = 9,5 mm) */}
                   <header
                     className="border-b-2 border-black flex items-end justify-between shrink-0"
                     style={{
-                      height: '9mm',
-                      paddingBottom: '1.2mm',
-                      marginBottom: '1.5mm',
+                      height: '8.5mm',
+                      paddingBottom: '1mm',
+                      marginBottom: '1mm',
                       gap: '4mm',
                       boxSizing: 'border-box',
                     }}
@@ -585,7 +267,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                       </p>
                       <h1
                         className="font-bold text-black leading-tight truncate"
-                        style={{ fontSize: '12pt', marginTop: '0.6mm' }}
+                        style={{ fontSize: '11.5pt', marginTop: '0.5mm' }}
                       >
                         {comercio.nombre}{' '}
                         <span
@@ -612,7 +294,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                     </div>
                   </header>
 
-                  {/* Contenedor de 3 menúes con paso vertical exacto (múltiplo entero de stepYMm) */}
+                  {/* Contenedor de 3 menúes con paso vertical exacto (90,0 mm) */}
                   <div
                     className="flex flex-col shrink-0"
                     style={{ gap: `${cardGapMm}mm` }}
@@ -640,12 +322,11 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                             boxSizing: 'border-box',
                           }}
                         >
-                          {/* Bloque superior de altura fija (45,8 mm) para bloquear la matriz Braille en la grilla vertical */}
+                          {/* Bloque superior fijo (45,8 mm) para mantener todas las filas Braille alineadas */}
                           <div
                             className="shrink-0 overflow-hidden"
                             style={{ height: '45.8mm' }}
                           >
-                            {/* Foto real + Título + Precio + Sin TACC + Descripción */}
                             <div
                               className="flex items-start"
                               style={{ height: '22mm', gap: '3mm' }}
@@ -734,7 +415,6 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                               </div>
                             </div>
 
-                            {/* Pictogramas (tamaño máximo de alto 15 mm) */}
                             {plato.pictogramas.length > 0 && (
                               <div
                                 className="flex flex-wrap items-start overflow-hidden"
@@ -783,7 +463,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                             )}
                           </div>
 
-                          {/* Banda inferior fija: Matriz Braille exacta (en mm) + QR individual (en mm) */}
+                          {/* Banda inferior fija: Braille exacto + QR individual */}
                           <div
                             className="flex items-start justify-between flex-1"
                             style={{
@@ -797,16 +477,12 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                               <p
                                 className="font-bold uppercase tracking-wide text-slate-700 leading-none"
                                 style={{
-                                  fontSize: '6.3pt',
+                                  fontSize: '6.5pt',
                                   height: '2.5mm',
                                   marginBottom: '0.5mm',
                                 }}
                               >
-                                Braille ({geometry.cellWidthMm.toFixed(1).replace('.', ',')}×
-                                {geometry.cellHeightMm.toFixed(1).replace('.', ',')} mm · puntos{' '}
-                                {geometry.dotSpacingMm.toFixed(1).replace('.', ',')} mm · paso H{' '}
-                                {geometry.stepXMm.toFixed(1).replace('.', ',')} mm × V{' '}
-                                {geometry.stepYMm.toFixed(1).replace('.', ',')} mm)
+                                Sistema Braille
                               </p>
                               <BrailleSvg
                                 lines={wrappedBraille.map((row) => ({
@@ -814,10 +490,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                                   guide: row.plain,
                                 }))}
                                 geometry={geometry}
-                                offsetXMm={calibration.offsetXMm}
-                                offsetYMm={calibration.offsetYMm}
                                 showGuide={false}
-                                showEmptyDots={calibration.showEmptyDots}
+                                showEmptyDots={false}
                                 ariaLabel={brPlain}
                               />
                             </div>
@@ -843,28 +517,22 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                     })}
                   </div>
 
-                  {/* Pie de hoja + regla opcional de verificación física 100 mm */}
+                  {/* Pie de hoja compacto */}
                   <footer
                     className="border-t border-black flex items-center justify-between text-black shrink-0 mt-auto"
                     style={{
+                      height: '4mm',
                       paddingTop: '1mm',
+                      marginTop: '1mm',
                       fontSize: '7pt',
                       gap: '3mm',
+                      boxSizing: 'border-box',
                     }}
                   >
-                    {calibration.showVerificationRuler ? (
-                      <div className="flex items-center" style={{ gap: '3mm' }}>
-                        <VerificationRulerMm />
-                        <span style={{ fontSize: '6.5pt' }}>
-                          Control escala 100 mm (10 cm)
-                        </span>
-                      </div>
-                    ) : (
-                      <span>
-                        Ordenanza Municipal &ldquo;Carta o Menú Inclusivo&rdquo;
-                        — Vicuña Mackenna
-                      </span>
-                    )}
+                    <span>
+                      Ordenanza Municipal &ldquo;Carta o Menú Inclusivo&rdquo; —
+                      Vicuña Mackenna
+                    </span>
                     <span className="shrink-0">
                       Vigencia: {formatFechaAr(comercio.vigencia.fechaCaducidad)}{' '}
                       · Hoja {pageIdx + 1}/{platosPages.length}
@@ -877,7 +545,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
         </div>
       )}
 
-      {/* MODO 2: CARTA A4 EN SISTEMA BRAILLE (MATRIZ COMPLETA EN MM EXACTO) */}
+      {/* MODO 2: CARTA A4 EN SISTEMA BRAILLE */}
       {mode === 'braille' && (
         <div className="a4-scroll-wrap overflow-x-auto space-y-6">
           {brailleSheetPages.map((pageRows, pageIdx) => {
@@ -890,9 +558,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                 }`}
                 style={{
                   width: '210mm',
-                  height: '296.5mm',
-                  minHeight: '296.5mm',
-                  padding: '8mm',
+                  minHeight: '297mm',
+                  padding: '7mm 8mm',
                   boxSizing: 'border-box',
                   fontFamily: 'Verdana, Helvetica, Arial, sans-serif',
                 }}
@@ -900,8 +567,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                 <div
                   className="border-b-2 border-black flex items-end justify-between shrink-0"
                   style={{
-                    paddingBottom: '2mm',
-                    marginBottom: '4mm',
+                    paddingBottom: '1.5mm',
+                    marginBottom: '3.5mm',
                     gap: '4mm',
                   }}
                 >
@@ -910,19 +577,13 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                       className="font-bold text-black leading-tight"
                       style={{ fontSize: '11.5pt' }}
                     >
-                      {comercio.nombre} — Carta en Sistema Braille (Formato A4)
+                      {comercio.nombre} — Carta en Sistema Braille
                     </h1>
                     <p
                       className="text-slate-700"
-                      style={{ fontSize: '7.5pt', marginTop: '0.6mm' }}
+                      style={{ fontSize: '7.5pt', marginTop: '0.5mm' }}
                     >
-                      Celda {geometry.cellWidthMm.toFixed(1).replace('.', ',')} ×{' '}
-                      {geometry.cellHeightMm.toFixed(1).replace('.', ',')} mm ·
-                      Puntos{' '}
-                      {geometry.dotSpacingMm.toFixed(1).replace('.', ',')} mm ·
-                      Paso H {geometry.stepXMm.toFixed(1).replace('.', ',')} mm ×
-                      V {geometry.stepYMm.toFixed(1).replace('.', ',')} mm (escala
-                      100%).
+                      Alfabeto Braille Español — Formato A4
                     </p>
                   </div>
                   <span
@@ -937,29 +598,14 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                   <BrailleSvg
                     lines={pageRows}
                     geometry={geometry}
-                    offsetXMm={calibration.offsetXMm}
-                    offsetYMm={calibration.offsetYMm}
                     showGuide={brailleConGuia}
-                    showEmptyDots={calibration.showEmptyDots}
+                    showEmptyDots={false}
                     fixedCols={maxColsFullSheet}
                     ariaLabel={`${comercio.nombre} Carta Braille Hoja ${
                       pageIdx + 1
                     }`}
                   />
                 </div>
-
-                {calibration.showVerificationRuler && (
-                  <footer
-                    className="border-t border-black flex items-center justify-between shrink-0 mt-auto"
-                    style={{ paddingTop: '1.5mm', fontSize: '7pt' }}
-                  >
-                    <VerificationRulerMm />
-                    <span>
-                      Desplazamiento matriz: X={calibration.offsetXMm} mm · Y=
-                      {calibration.offsetYMm} mm
-                    </span>
-                  </footer>
-                )}
               </section>
             );
           })}
@@ -972,7 +618,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
           className="a4-sheet mx-auto bg-white border border-slate-300 rounded-lg text-black"
           style={{
             width: '210mm',
-            minHeight: '296.5mm',
+            minHeight: '297mm',
             padding: '10mm',
             boxSizing: 'border-box',
           }}

@@ -32,16 +32,16 @@
 
 @media print {
   @page {
-    size: 210mm 297mm;
-    margin: 0mm;
+    size: A4 portrait;
+    margin: 6mm;
   }
 
   html,
   body,
   #root {
-    width: 210mm !important;
-    min-width: 210mm !important;
-    max-width: 210mm !important;
+    width: 198mm !important;
+    min-width: 198mm !important;
+    max-width: 198mm !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
@@ -55,8 +55,8 @@
   }
 
   .print-wrapper-reset {
-    width: 210mm !important;
-    max-width: 210mm !important;
+    width: 198mm !important;
+    max-width: 198mm !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -79,20 +79,17 @@
     border: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
-    width: 210mm !important;
-    max-width: 210mm !important;
-    height: 296.5mm !important;
-    min-height: 296.5mm !important;
-    max-height: 296.5mm !important;
+    width: 198mm !important;
+    max-width: 198mm !important;
+    height: 284.5mm !important;
+    min-height: 284.5mm !important;
+    max-height: 284.5mm !important;
+    padding: 1mm 2mm !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
     overflow: hidden !important;
     zoom: 1 !important;
     transform: none !important;
-  }
-
-  .a4-sheet {
-    padding: 8mm !important;
   }
 
   .a4-scroll-wrap {
