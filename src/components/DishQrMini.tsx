@@ -8,6 +8,7 @@ interface DishQrMiniProps {
   platoId: string;
   platoNombre: string;
   size?: number;
+  sizeMm?: number;
   showActions?: boolean;
   isDraftUnsaved?: boolean;
   onTestQr?: () => void;
@@ -28,6 +29,7 @@ export const DishQrMini: React.FC<DishQrMiniProps> = ({
   platoId,
   platoNombre,
   size = 96,
+  sizeMm,
   showActions = true,
   isDraftUnsaved = false,
   onTestQr,
@@ -86,12 +88,23 @@ export const DishQrMini: React.FC<DishQrMiniProps> = ({
   return (
     <div className="flex items-center gap-3">
       <div
-        className="bg-white border border-slate-300 rounded-lg p-1.5 shrink-0 flex items-center justify-center"
-        style={{ width: size + 12, height: size + 12 }}
+        className="bg-white border border-slate-300 shrink-0 flex items-center justify-center"
+        style={
+          sizeMm
+            ? {
+                width: `${sizeMm + 2}mm`,
+                height: `${sizeMm + 2}mm`,
+                padding: '1mm',
+                borderRadius: '1mm',
+                boxSizing: 'border-box',
+              }
+            : { width: size + 12, height: size + 12, padding: 6, borderRadius: 8 }
+        }
       >
         <QrSvg
           value={dishUrl}
-          size={size}
+          size={sizeMm ?? size}
+          unit={sizeMm ? 'mm' : 'px'}
           title={`QR del plato ${platoNombre}`}
           quietZone={1}
         />

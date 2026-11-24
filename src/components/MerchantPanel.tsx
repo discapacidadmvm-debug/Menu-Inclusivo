@@ -570,7 +570,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
   const publicMenuUrl = `${window.location.origin}${window.location.pathname || '/'}?carta=${encodeURIComponent(comercio.slug)}`;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="print-wrapper-reset max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       {/* Cabecera del comercio + Estado de habilitación (oculta al imprimir A4) */}
       <div className="no-print space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -1187,7 +1187,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                             Referencia: {br.plain}
                           </p>
                           <p className="text-[10.5px] text-slate-500">
-                            En impresión A4: celda 6,5×4,0 mm · puntos 2,5 mm · paso 6,0 mm · interlineado 10,0 mm · pictos máx. 15 mm (3 platos/hoja).
+                            En impresión A4: celda 4,0×6,5 mm · puntos 2,5 mm · paso H 6,3 mm × V 10,0 mm · pictos máx. 15 mm (3 platos/hoja).
                           </p>
                         </>
                       );
@@ -1343,7 +1343,7 @@ export const MerchantPanel: React.FC<MerchantPanelProps> = ({
                                 {br.plain}
                               </p>
                               <p className="text-[10px] text-slate-500">
-                                Impresión A4: Braille 6,5×4,0 mm (10,0 mm renglón) · Pictogramas máx. 15 mm
+                                Impresión A4: Braille 4,0×6,5 mm (paso 6,3×10,0 mm) · Pictogramas máx. 15 mm
                               </p>
                             </>
                           );

@@ -1,9 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { Printer, Download, Eye, UtensilsCrossed, Grid } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Printer,
+  Download,
+  Eye,
+  UtensilsCrossed,
+  Grid,
+  Ruler,
+  SlidersHorizontal,
+  RotateCcw,
+} from 'lucide-react';
 import { CategoriaPlato, ComercioPublico, PlatoMenu } from '../types.ts';
 import { formatArs, formatFechaAr } from '../utils/dates.ts';
 import {
+  BRAILLE_GEOMETRY_PRESETS,
   BRAILLE_SPECS_MM,
+  BrailleOrientationMode,
   buildBraillePlainTextExport,
   buildMenuBrailleLines,
   formatDishPriceBraille,
@@ -21,6 +32,24 @@ interface A4PrintSuiteProps {
 }
 
 type PrintMode = 'pictogramas' | 'braille' | 'oblea_qr';
+
+interface BrailleCalibrationState {
+  orientation: BrailleOrientationMode;
+  offsetXMm: number;
+  offsetYMm: number;
+  showEmptyDots: boolean;
+  showVerificationRuler: boolean;
+}
+
+const CALIBRATION_STORAGE_KEY = 'carta_braille_calibration_v1';
+
+const DEFAULT_CALIBRATION: BrailleCalibrationState = {
+  orientation: 'slate_portrait',
+  offsetXMm: 0,
+  offsetYMm: 0,
+  showEmptyDots: true,
+  showVerificationRuler: false,
+};
 
 const CATEGORIA_ORDER: Record<CategoriaPlato, number> = {
   Desayunos: 1,
@@ -52,6 +81,89 @@ function chunkArray<T>(items: T[], size: number): T[][] {
   return pages;
 }
 
+function loadCalibration(): BrailleCalibrationState {
+  if (typeof window === 'undefined') return DEFAULT_CALIBRATION;
+  try {
+    const raw = window.localStorage.getItem(CALIBRATION_STORAGE_KEY);
+    if (!raw) return DEFAULT_CALIBRATION;
+    const parsed = JSON.parse(raw);
+    return {
+      orientation:
+        parsed.orientation === 'slate_rotated_90'
+          ? 'slate_rotated_90'
+          : 'slate_portrait',
+      offsetXMm:
+        typeof parsed.offsetXMm === 'number' && Number.isFinite(parsed.offsetXMm)
+          ? Math.max(-30, Math.min(30, Number(parsed.offsetXMm.toFixed(1))))
+          : 0,
+      offsetYMm:
+        typeof parsed.offsetYMm === 'number' && Number.isFinite(parsed.offsetYMm)
+          ? Math.max(-30, Math.min(30, Number(parsed.offsetYMm.toFixed(1))))
+          : 0,
+      showEmptyDots:
+        typeof parsed.showEmptyDots === 'boolean' ? parsed.showEmptyDots : true,
+      showVerificationRuler:
+        typeof parsed.showVerificationRuler === 'boolean'
+          ? parsed.showVerificationRuler
+          : false,
+    };
+  } catch {
+    return DEFAULT_CALIBRATION;
+  }
+}
+
+const VerificationRulerMm: React.FC = () => {
+  const totalMm = 100;
+  const ticks = Array.from({ length: totalMm + 1 }, (_, mm) => mm);
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="104mm"
+      height="7mm"
+      viewBox="-2 0 104 7"
+      aria-label="Regla de verificación física de 100 mm"
+      style={{
+        width: '104mm',
+        height: '7mm',
+        maxWidth: 'none',
+        display: 'block',
+      }}
+    >
+      <line x1={0} y1={0.3} x2={totalMm} y2={0.3} stroke="#0f172a" strokeWidth={0.25} />
+      {ticks.map((mm) => {
+        const isCm = mm % 10 === 0;
+        const isHalf = mm % 5 === 0 && !isCm;
+        const tickLen = isCm ? 3.2 : isHalf ? 2.2 : 1.3;
+        return (
+          <g key={mm}>
+            <line
+              x1={mm}
+              y1={0.3}
+              x2={mm}
+              y2={0.3 + tickLen}
+              stroke="#0f172a"
+              strokeWidth={isCm ? 0.3 : 0.18}
+            />
+            {isCm && (
+              <text
+                x={mm}
+                y={6.2}
+                textAnchor="middle"
+                fontSize={2.3}
+                fontWeight="bold"
+                fill="#0f172a"
+                fontFamily="Verdana, Helvetica, Arial, sans-serif"
+              >
+                {mm / 10}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
   comercio,
   platos,
@@ -59,7 +171,22 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
 }) => {
   const [mode, setMode] = useState<PrintMode>('pictogramas');
   const [brailleConGuia, setBrailleConGuia] = useState(true);
-  const [showEmptyDots, setShowEmptyDots] = useState(false);
+  const [calibration, setCalibration] = useState<BrailleCalibrationState>(
+    loadCalibration
+  );
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        CALIBRATION_STORAGE_KEY,
+        JSON.stringify(calibration)
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, [calibration]);
+
+  const geometry = BRAILLE_GEOMETRY_PRESETS[calibration.orientation];
 
   const platosActivosOrdenados = useMemo(() => {
     return platos
@@ -74,13 +201,20 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
       });
   }, [platos]);
 
-  // Reacomodado estrictamente a 3 menúes por hoja A4
+  // Estrictamente 3 menúes por hoja A4
   const platosPages = useMemo(
     () => chunkArray(platosActivosOrdenados, 3),
     [platosActivosOrdenados]
   );
 
-  // Líneas Braille completas para Modo 2 (30 celdas/renglón = 178 mm <= 194 mm imprimibles A4)
+  // Columnas máximas según ancho imprimible y paso horizontal real de tableta
+  const maxColsCard = geometry.rotated90 ? 16 : 26; // 156,5 mm o 161,5 mm <= 167 mm disponibles
+  const maxRowsCard = geometry.rotated90 ? 4 : 3;
+
+  const maxColsFullSheet = geometry.rotated90 ? 18 : 28; // 176,5 mm o 174,1 mm <= 194 mm
+  const maxRowsFullSheet = geometry.rotated90 ? 37 : 25;
+
+  // Líneas Braille completas para Modo 2 (Carta A4 en Braille)
   const brailleSheetPages = useMemo(() => {
     const rawLines = buildMenuBrailleLines(comercio, platosActivosOrdenados);
     const wrappedRows: BrailleSvgLine[] = [];
@@ -88,12 +222,16 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
     for (const line of rawLines) {
       if (line.kind === 'separator') {
         wrappedRows.push({
-          braille: '⠒'.repeat(30),
+          braille: '⠒'.repeat(maxColsFullSheet),
           guide: '',
         });
         continue;
       }
-      const chunks = wrapBrailleLineWithPlain(line.plain, 30, line.braille);
+      const chunks = wrapBrailleLineWithPlain(
+        line.plain,
+        maxColsFullSheet,
+        line.braille
+      );
       for (const ch of chunks) {
         wrappedRows.push({
           braille: ch.braille,
@@ -102,9 +240,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
       }
     }
 
-    // 25 renglones por hoja A4 a 10,0 mm de interlineado = 249,4 mm <= 265 mm útiles
-    return chunkArray(wrappedRows, 25);
-  }, [comercio, platosActivosOrdenados]);
+    return chunkArray(wrappedRows, maxRowsFullSheet);
+  }, [comercio, platosActivosOrdenados, maxColsFullSheet, maxRowsFullSheet]);
 
   const handlePrint = () => {
     window.print();
@@ -125,9 +262,25 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const adjustOffset = (axis: 'offsetXMm' | 'offsetYMm', delta: number) => {
+    setCalibration((prev) => ({
+      ...prev,
+      [axis]: Math.max(
+        -30,
+        Math.min(30, Number((prev[axis] + delta).toFixed(1)))
+      ),
+    }));
+  };
+
+  // Paso vertical entre tarjetas = múltiplo entero exacto del paso vertical de la tableta
+  // Estándar (stepY=10,0 mm): 9 filas = 90,0 mm (tarjeta 87,5 mm + espacio 2,5 mm)
+  // Girada 90° (stepY=6,3 mm): 14 filas = 88,2 mm (tarjeta 85,7 mm + espacio 2,5 mm)
+  const cardHeightMm = geometry.rotated90 ? 85.7 : 87.5;
+  const cardGapMm = 2.5;
+
   return (
-    <div className="space-y-5">
-      {/* Barra de controles de impresión (oculta en impresión A4) */}
+    <div className="space-y-4">
+      {/* Barra superior de selección de formato e impresión */}
       <div className="no-print bg-white border border-slate-200 rounded-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-lg">
           <button
@@ -165,16 +318,41 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {mode !== 'oblea_qr' && (
-            <button
-              type="button"
-              onClick={() => setShowEmptyDots((v) => !v)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 cursor-pointer whitespace-nowrap"
-            >
-              <Grid className="w-3.5 h-3.5" />
-              {showEmptyDots ? 'Ocultar matriz vacía' : 'Ver 6 puntos guía'}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setCalibration((p) => ({
+                    ...p,
+                    showEmptyDots: !p.showEmptyDots,
+                  }))
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 cursor-pointer whitespace-nowrap"
+              >
+                <Grid className="w-3.5 h-3.5" />
+                {calibration.showEmptyDots
+                  ? 'Ocultar 6 puntos guía'
+                  : 'Ver 6 puntos guía'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCalibration((p) => ({
+                    ...p,
+                    showVerificationRuler: !p.showVerificationRuler,
+                  }))
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-white border border-slate-300 text-slate-800 rounded-lg hover:bg-slate-50 cursor-pointer whitespace-nowrap"
+              >
+                <Ruler className="w-3.5 h-3.5" />
+                {calibration.showVerificationRuler
+                  ? 'Ocultar regla 100 mm'
+                  : 'Regla control 100 mm'}
+              </button>
+            </>
           )}
 
           {mode === 'braille' && (
@@ -204,33 +382,155 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors whitespace-nowrap cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            Imprimir formato A4
+            Imprimir formato A4 (100%)
           </button>
         </div>
       </div>
 
-      {/* Especificaciones técnicas de impresión calibradas en milímetros */}
-      <div className="no-print bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-2">
-        <span>
-          <strong>Braille calibrado (1:1 mm):</strong> celda{' '}
-          {BRAILLE_SPECS_MM.cellHeightMm.toFixed(1).replace('.', ',')} ×{' '}
-          {BRAILLE_SPECS_MM.cellWidthMm.toFixed(1).replace('.', ',')} mm ·
-          puntos{' '}
-          {BRAILLE_SPECS_MM.dotSpacingMm.toFixed(1).replace('.', ',')} mm ·
-          celdas contiguas{' '}
-          {BRAILLE_SPECS_MM.cellPitchMm.toFixed(1).replace('.', ',')} mm ·
-          interlineado{' '}
-          {BRAILLE_SPECS_MM.lineSpacingMm.toFixed(1).replace('.', ',')} mm
-        </span>
-        <span>
-          <strong>Pictogramas:</strong> máx.{' '}
-          {BRAILLE_SPECS_MM.pictogramMaxHeightMm} mm de alto ·{' '}
-          <strong>3 menúes por hoja A4</strong> (escala 100%, sin ajustar
-          márgenes)
-        </span>
-      </div>
+      {/* Panel de calibración física de matriz Braille (mm exactos, sin píxeles) */}
+      {mode !== 'oblea_qr' && (
+        <div className="no-print bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <SlidersHorizontal className="w-4 h-4 text-blue-700" />
+              Calibración física con tableta Braille (100% en milímetros)
+            </div>
+            <button
+              type="button"
+              onClick={() => setCalibration(DEFAULT_CALIBRATION)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Restablecer valores
+            </button>
+          </div>
 
-      {/* MODO 1: CARTA A4 CON PICTOGRAMAS (<= 15 mm) + BRAILLE EXACTO + 3 MENÚES POR HOJA A4 */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+            <div className="lg:col-span-6 space-y-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Orientación de celdas y pasos de la tableta
+              </label>
+              <select
+                value={calibration.orientation}
+                onChange={(e) =>
+                  setCalibration((prev) => ({
+                    ...prev,
+                    orientation: e.target.value as BrailleOrientationMode,
+                  }))
+                }
+                className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg text-slate-900"
+              >
+                <option value="slate_portrait">
+                  {BRAILLE_GEOMETRY_PRESETS.slate_portrait.label}
+                </option>
+                <option value="slate_rotated_90">
+                  {BRAILLE_GEOMETRY_PRESETS.slate_rotated_90.label}
+                </option>
+              </select>
+            </div>
+
+            {/* Ajuste horizontal X independiente */}
+            <div className="lg:col-span-3 space-y-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Desplazamiento horizontal X (mm)
+              </label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => adjustOffset('offsetXMm', -0.5)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
+                >
+                  -0,5
+                </button>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="-30"
+                  max="30"
+                  value={calibration.offsetXMm}
+                  onChange={(e) =>
+                    setCalibration((prev) => ({
+                      ...prev,
+                      offsetXMm: Math.max(
+                        -30,
+                        Math.min(30, Number(e.target.value) || 0)
+                      ),
+                    }))
+                  }
+                  className="w-full px-2 py-1.5 text-xs font-mono-tabular text-center border border-slate-300 rounded bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustOffset('offsetXMm', 0.5)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
+                >
+                  +0,5
+                </button>
+              </div>
+            </div>
+
+            {/* Ajuste vertical Y independiente */}
+            <div className="lg:col-span-3 space-y-1">
+              <label className="block text-xs font-semibold text-slate-700">
+                Desplazamiento vertical Y (mm)
+              </label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => adjustOffset('offsetYMm', -0.5)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
+                >
+                  -0,5
+                </button>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="-30"
+                  max="30"
+                  value={calibration.offsetYMm}
+                  onChange={(e) =>
+                    setCalibration((prev) => ({
+                      ...prev,
+                      offsetYMm: Math.max(
+                        -30,
+                        Math.min(30, Number(e.target.value) || 0)
+                      ),
+                    }))
+                  }
+                  className="w-full px-2 py-1.5 text-xs font-mono-tabular text-center border border-slate-300 rounded bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustOffset('offsetYMm', 0.5)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 cursor-pointer"
+                >
+                  +0,5
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+            <span>
+              <strong>Geometría activa de puntos:</strong> celda{' '}
+              {geometry.cellWidthMm.toFixed(1).replace('.', ',')} ×{' '}
+              {geometry.cellHeightMm.toFixed(1).replace('.', ',')} mm · centros
+              de puntos {geometry.dotSpacingMm.toFixed(1).replace('.', ',')} mm
+              · separación libre H{' '}
+              {geometry.freeGapXMm.toFixed(1).replace('.', ',')} mm / V{' '}
+              {geometry.freeGapYMm.toFixed(1).replace('.', ',')} mm · paso H{' '}
+              {geometry.stepXMm.toFixed(1).replace('.', ',')} mm × V{' '}
+              {geometry.stepYMm.toFixed(1).replace('.', ',')} mm.
+            </span>
+            <span className="font-semibold text-slate-800">
+              Imprimir en Chrome/Edge con: Papel A4 · Márgenes: Ninguno · Escala:
+              100%
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* MODO 1: CARTA A4 CON PICTOGRAMAS (<= 15 mm) + MATRIZ BRAILLE ALINEADA A TABLETA + 3 MENÚES POR HOJA */}
       {mode === 'pictogramas' && (
         <div className="a4-scroll-wrap overflow-x-auto space-y-6">
           {platosPages.length === 0 ? (
@@ -238,12 +538,12 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
               className="a4-sheet-page mx-auto bg-white border border-slate-300 rounded-lg text-black flex flex-col justify-center items-center"
               style={{
                 width: '210mm',
-                minHeight: '297mm',
-                padding: '8mm',
+                minHeight: '296.5mm',
+                padding: '7mm 8mm 6mm 8mm',
                 boxSizing: 'border-box',
               }}
             >
-              <p className="text-base text-center">
+              <p style={{ fontSize: '12pt' }}>
                 No hay platos activos cargados para imprimir.
               </p>
             </section>
@@ -253,47 +553,69 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
               return (
                 <section
                   key={`a4-picto-page-${pageIdx}`}
-                  className={`a4-sheet-page mx-auto bg-white border border-slate-300 rounded-lg text-black flex flex-col ${
+                  className={`a4-sheet-page mx-auto bg-white border border-slate-300 text-black flex flex-col ${
                     !isLastPage ? 'a4-page-break-after' : ''
                   }`}
                   style={{
                     width: '210mm',
-                    minHeight: '297mm',
-                    padding: '8mm',
+                    height: '296.5mm',
+                    minHeight: '296.5mm',
+                    padding: '5.5mm 8mm 4.5mm 8mm',
                     boxSizing: 'border-box',
                     fontFamily: 'Verdana, Helvetica, Arial, sans-serif',
                   }}
                 >
-                  {/* Encabezado compacto de hoja A4 (~10 mm) */}
+                  {/* Encabezado compacto fijo (9 mm + 1,5 mm margen = 10,5 mm) */}
                   <header
-                    className="border-b-2 border-black flex items-end justify-between gap-4 shrink-0"
-                    style={{ paddingBottom: '1.8mm', marginBottom: '2.5mm' }}
+                    className="border-b-2 border-black flex items-end justify-between shrink-0"
+                    style={{
+                      height: '9mm',
+                      paddingBottom: '1.2mm',
+                      marginBottom: '1.5mm',
+                      gap: '4mm',
+                      boxSizing: 'border-box',
+                    }}
                   >
                     <div className="min-w-0">
-                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-700 leading-none">
+                      <p
+                        className="font-bold uppercase tracking-wider text-slate-700 leading-none"
+                        style={{ fontSize: '7pt' }}
+                      >
                         Carta Inclusiva — Municipalidad de Vicuña Mackenna
                       </p>
-                      <h1 className="text-[16px] font-bold text-black leading-tight mt-0.5 truncate">
+                      <h1
+                        className="font-bold text-black leading-tight truncate"
+                        style={{ fontSize: '12pt', marginTop: '0.6mm' }}
+                      >
                         {comercio.nombre}{' '}
-                        <span className="text-[11px] font-normal text-slate-700">
+                        <span
+                          className="font-normal text-slate-700"
+                          style={{ fontSize: '8.5pt' }}
+                        >
                           · {comercio.rubro} · {comercio.direccion}
                         </span>
                       </h1>
                     </div>
                     <div className="text-right shrink-0 leading-tight">
-                      <p className="text-[10px] font-bold text-black">
+                      <p
+                        className="font-bold text-black"
+                        style={{ fontSize: '7.5pt' }}
+                      >
                         Oblea Nº {comercio.obleaNumero} · ARS
                       </p>
-                      <p className="text-[9.5px] text-slate-700">
+                      <p
+                        className="text-slate-700"
+                        style={{ fontSize: '7pt' }}
+                      >
                         Hoja {pageIdx + 1} de {platosPages.length}
                       </p>
                     </div>
                   </header>
 
-                  {/* Contenedor de hasta 3 menúes por hoja A4 */}
+                  {/* Contenedor de 3 menúes con paso vertical exacto (múltiplo entero de stepYMm) */}
                   <div
-                    className="flex flex-col flex-1"
-                    style={{ gap: '2.5mm' }}
+                    className="flex flex-col shrink-0"
+                    style={{ gap: `${cardGapMm}mm` }}
                   >
                     {pageItems.map((plato) => {
                       const brPlain = formatDishPriceBraille(
@@ -301,147 +623,201 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                         plato.precioArs,
                         plato.libreDeTacc
                       ).plain;
-                      // 27 celdas * 6,0 mm - 2,0 mm = 160,0 mm <= 167 mm disponibles junto al QR
                       const wrappedBraille = wrapBrailleLineWithPlain(
                         brPlain,
-                        27
-                      ).slice(0, 3);
+                        maxColsCard
+                      ).slice(0, maxRowsCard);
 
                       return (
                         <article
                           key={plato.id}
-                          className="a4-avoid-break border border-black rounded bg-white flex flex-col justify-between"
+                          className="a4-avoid-break bg-white flex flex-col shrink-0"
                           style={{
-                            padding: '2.4mm 3mm',
+                            height: `${cardHeightMm}mm`,
+                            border: '0.35mm solid #000000',
+                            borderRadius: '1.2mm',
+                            padding: '2.2mm 3mm',
                             boxSizing: 'border-box',
                           }}
                         >
-                          {/* Banda superior: Foto real + Título + Precio + Sin TACC + Descripción */}
+                          {/* Bloque superior de altura fija (45,8 mm) para bloquear la matriz Braille en la grilla vertical */}
                           <div
-                            className="flex items-start"
-                            style={{ gap: '3mm' }}
+                            className="shrink-0 overflow-hidden"
+                            style={{ height: '45.8mm' }}
                           >
+                            {/* Foto real + Título + Precio + Sin TACC + Descripción */}
                             <div
-                              className="shrink-0 rounded border border-slate-400 overflow-hidden bg-slate-50 flex items-center justify-center"
-                              style={{ width: '32mm', height: '22mm' }}
+                              className="flex items-start"
+                              style={{ height: '22mm', gap: '3mm' }}
                             >
-                              {plato.fotoUrl ? (
-                                <img
-                                  src={plato.fotoUrl}
-                                  alt={plato.nombre}
-                                  referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex flex-col items-center justify-center text-slate-600 p-1 text-center">
-                                  <UtensilsCrossed className="w-5 h-5 mb-0.5" />
-                                  <span className="text-[8.5px] font-semibold leading-tight">
-                                    {plato.nombre}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-[9px] font-bold uppercase tracking-wide text-slate-700">
-                                  {plato.categoria}
-                                </span>
-                                {plato.libreDeTacc && (
-                                  <SinTaccLogo size="sm" highContrast />
+                              <div
+                                className="shrink-0 border border-slate-400 overflow-hidden bg-slate-50 flex items-center justify-center"
+                                style={{
+                                  width: '32mm',
+                                  height: '22mm',
+                                  borderRadius: '1mm',
+                                }}
+                              >
+                                {plato.fotoUrl ? (
+                                  <img
+                                    src={plato.fotoUrl}
+                                    alt={plato.nombre}
+                                    referrerPolicy="no-referrer"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div
+                                    className="flex flex-col items-center justify-center text-slate-600 text-center"
+                                    style={{ padding: '1mm' }}
+                                  >
+                                    <UtensilsCrossed
+                                      style={{ width: '5mm', height: '5mm' }}
+                                    />
+                                    <span
+                                      className="font-semibold leading-tight"
+                                      style={{
+                                        fontSize: '6.5pt',
+                                        marginTop: '0.5mm',
+                                      }}
+                                    >
+                                      {plato.nombre}
+                                    </span>
+                                  </div>
                                 )}
                               </div>
 
-                              <div className="flex items-baseline justify-between gap-2 mt-0.5">
-                                <h2
-                                  className="font-bold text-black leading-tight truncate"
-                                  style={{ fontSize: '15.5px' }}
-                                >
-                                  {plato.nombre}
-                                </h2>
-                                <span
-                                  className="font-bold font-mono-tabular text-black shrink-0 leading-tight"
-                                  style={{ fontSize: '16px' }}
-                                >
-                                  {formatArs(plato.precioArs)}
-                                </span>
-                              </div>
-
-                              {plato.descripcion && (
-                                <p
-                                  className="text-black leading-snug mt-0.5 line-clamp-2"
-                                  style={{ fontSize: '11px' }}
-                                >
-                                  {plato.descripcion}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Banda media: Pictogramas con tamaño máximo de alto 15 mm */}
-                          {plato.pictogramas.length > 0 && (
-                            <div
-                              className="flex flex-wrap items-start"
-                              style={{ gap: '1.5mm', marginTop: '1.8mm' }}
-                            >
-                              {plato.pictogramas.map((pg, idx) => (
+                              <div className="flex-1 min-w-0">
                                 <div
-                                  key={`${pg.id}-${idx}`}
-                                  className="border border-black rounded text-center bg-white flex flex-col items-center justify-between"
-                                  style={{
-                                    width: '17.5mm',
-                                    padding: '0.8mm',
-                                    boxSizing: 'border-box',
-                                  }}
+                                  className="flex items-center justify-between"
+                                  style={{ gap: '2mm' }}
                                 >
-                                  <img
-                                    src={pg.imageUrl}
-                                    alt={pg.label}
-                                    referrerPolicy="no-referrer"
-                                    className="picto-img-15mm mx-auto"
-                                    style={{
-                                      maxHeight: '15mm',
-                                      maxWidth: '15mm',
-                                      height: '13.5mm',
-                                      width: 'auto',
-                                      objectFit: 'contain',
-                                    }}
-                                  />
                                   <span
-                                    className="block w-full font-bold text-black leading-none truncate"
-                                    style={{
-                                      fontSize: '8.5px',
-                                      marginTop: '0.7mm',
-                                    }}
+                                    className="font-bold uppercase tracking-wide text-slate-700"
+                                    style={{ fontSize: '6.8pt' }}
                                   >
-                                    {pg.label}
+                                    {plato.categoria}
+                                  </span>
+                                  {plato.libreDeTacc && (
+                                    <SinTaccLogo size="sm" highContrast />
+                                  )}
+                                </div>
+
+                                <div
+                                  className="flex items-baseline justify-between"
+                                  style={{ gap: '2mm', marginTop: '0.5mm' }}
+                                >
+                                  <h2
+                                    className="font-bold text-black leading-tight truncate"
+                                    style={{ fontSize: '11.5pt' }}
+                                  >
+                                    {plato.nombre}
+                                  </h2>
+                                  <span
+                                    className="font-bold font-mono-tabular text-black shrink-0 leading-tight"
+                                    style={{ fontSize: '12pt' }}
+                                  >
+                                    {formatArs(plato.precioArs)}
                                   </span>
                                 </div>
-                              ))}
-                            </div>
-                          )}
 
-                          {/* Banda inferior: Braille exacto (6,5x4,0 mm / 2,5 mm / 6,0 mm / 10,0 mm) + QR */}
+                                {plato.descripcion && (
+                                  <p
+                                    className="text-black leading-snug line-clamp-2"
+                                    style={{
+                                      fontSize: '8.2pt',
+                                      marginTop: '0.6mm',
+                                    }}
+                                  >
+                                    {plato.descripcion}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Pictogramas (tamaño máximo de alto 15 mm) */}
+                            {plato.pictogramas.length > 0 && (
+                              <div
+                                className="flex flex-wrap items-start overflow-hidden"
+                                style={{
+                                  gap: '1.5mm',
+                                  marginTop: '1.8mm',
+                                  maxHeight: '21.5mm',
+                                }}
+                              >
+                                {plato.pictogramas.map((pg, idx) => (
+                                  <div
+                                    key={`${pg.id}-${idx}`}
+                                    className="border border-black text-center bg-white flex flex-col items-center justify-between"
+                                    style={{
+                                      width: '17.5mm',
+                                      padding: '0.8mm',
+                                      borderRadius: '0.8mm',
+                                      boxSizing: 'border-box',
+                                    }}
+                                  >
+                                    <img
+                                      src={pg.imageUrl}
+                                      alt={pg.label}
+                                      referrerPolicy="no-referrer"
+                                      className="picto-img-15mm mx-auto"
+                                      style={{
+                                        maxHeight: `${BRAILLE_SPECS_MM.pictogramMaxHeightMm}mm`,
+                                        maxWidth: '15mm',
+                                        height: '13.5mm',
+                                        width: 'auto',
+                                        objectFit: 'contain',
+                                      }}
+                                    />
+                                    <span
+                                      className="block w-full font-bold text-black leading-none truncate"
+                                      style={{
+                                        fontSize: '6.5pt',
+                                        marginTop: '0.7mm',
+                                      }}
+                                    >
+                                      {pg.label}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Banda inferior fija: Matriz Braille exacta (en mm) + QR individual (en mm) */}
                           <div
-                            className="border-t border-slate-400 flex items-center justify-between"
+                            className="flex items-start justify-between flex-1"
                             style={{
-                              paddingTop: '1.5mm',
-                              marginTop: '1.8mm',
+                              borderTop: '0.25mm solid #94a3b8',
+                              paddingTop: '1mm',
                               gap: '3mm',
+                              overflow: 'visible',
                             }}
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="text-[8.5px] font-bold uppercase tracking-wide text-slate-700 mb-1">
-                                Braille (6,5×4,0 mm · puntos 2,5 mm · paso 6,0 mm
-                                · interlineado 10,0 mm):
+                              <p
+                                className="font-bold uppercase tracking-wide text-slate-700 leading-none"
+                                style={{
+                                  fontSize: '6.3pt',
+                                  height: '2.5mm',
+                                  marginBottom: '0.5mm',
+                                }}
+                              >
+                                Braille ({geometry.cellWidthMm.toFixed(1).replace('.', ',')}×
+                                {geometry.cellHeightMm.toFixed(1).replace('.', ',')} mm · puntos{' '}
+                                {geometry.dotSpacingMm.toFixed(1).replace('.', ',')} mm · paso H{' '}
+                                {geometry.stepXMm.toFixed(1).replace('.', ',')} mm × V{' '}
+                                {geometry.stepYMm.toFixed(1).replace('.', ',')} mm)
                               </p>
                               <BrailleSvg
                                 lines={wrappedBraille.map((row) => ({
                                   braille: row.braille,
                                   guide: row.plain,
                                 }))}
+                                geometry={geometry}
+                                offsetXMm={calibration.offsetXMm}
+                                offsetYMm={calibration.offsetYMm}
                                 showGuide={false}
-                                showEmptyDots={showEmptyDots}
+                                showEmptyDots={calibration.showEmptyDots}
                                 ariaLabel={brPlain}
                               />
                             </div>
@@ -451,10 +827,13 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                                 slug={comercio.slug}
                                 platoId={plato.id}
                                 platoNombre={plato.nombre}
-                                size={52}
+                                sizeMm={14}
                                 showActions={false}
                               />
-                              <span className="block text-[8.5px] font-bold text-black mt-0.5 leading-none">
+                              <span
+                                className="block font-bold text-black leading-none"
+                                style={{ fontSize: '6.5pt', marginTop: '0.7mm' }}
+                              >
                                 QR Audio
                               </span>
                             </div>
@@ -464,19 +843,31 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                     })}
                   </div>
 
-                  {/* Pie de hoja compacto (~4 mm) */}
+                  {/* Pie de hoja + regla opcional de verificación física 100 mm */}
                   <footer
-                    className="border-t border-black flex items-center justify-between text-[9.5px] text-black shrink-0"
-                    style={{ paddingTop: '1.2mm', marginTop: '2mm' }}
+                    className="border-t border-black flex items-center justify-between text-black shrink-0 mt-auto"
+                    style={{
+                      paddingTop: '1mm',
+                      fontSize: '7pt',
+                      gap: '3mm',
+                    }}
                   >
-                    <span>
-                      Ordenanza Municipal &ldquo;Carta o Menú Inclusivo&rdquo; —
-                      Vicuña Mackenna
-                    </span>
-                    <span>
-                      Vigencia hasta:{' '}
-                      {formatFechaAr(comercio.vigencia.fechaCaducidad)} · Hoja{' '}
-                      {pageIdx + 1}/{platosPages.length}
+                    {calibration.showVerificationRuler ? (
+                      <div className="flex items-center" style={{ gap: '3mm' }}>
+                        <VerificationRulerMm />
+                        <span style={{ fontSize: '6.5pt' }}>
+                          Control escala 100 mm (10 cm)
+                        </span>
+                      </div>
+                    ) : (
+                      <span>
+                        Ordenanza Municipal &ldquo;Carta o Menú Inclusivo&rdquo;
+                        — Vicuña Mackenna
+                      </span>
+                    )}
+                    <span className="shrink-0">
+                      Vigencia: {formatFechaAr(comercio.vigencia.fechaCaducidad)}{' '}
+                      · Hoja {pageIdx + 1}/{platosPages.length}
                     </span>
                   </footer>
                 </section>
@@ -486,7 +877,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
         </div>
       )}
 
-      {/* MODO 2: CARTA A4 EN SISTEMA BRAILLE (ESCALA FÍSICA 1:1 EN MILÍMETROS) */}
+      {/* MODO 2: CARTA A4 EN SISTEMA BRAILLE (MATRIZ COMPLETA EN MM EXACTO) */}
       {mode === 'braille' && (
         <div className="a4-scroll-wrap overflow-x-auto space-y-6">
           {brailleSheetPages.map((pageRows, pageIdx) => {
@@ -494,44 +885,81 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
             return (
               <section
                 key={`a4-braille-page-${pageIdx}`}
-                className={`a4-sheet-page mx-auto bg-white border border-slate-300 rounded-lg text-black flex flex-col ${
+                className={`a4-sheet-page mx-auto bg-white border border-slate-300 text-black flex flex-col ${
                   !isLastPage ? 'a4-page-break-after' : ''
                 }`}
                 style={{
                   width: '210mm',
-                  minHeight: '297mm',
+                  height: '296.5mm',
+                  minHeight: '296.5mm',
                   padding: '8mm',
                   boxSizing: 'border-box',
+                  fontFamily: 'Verdana, Helvetica, Arial, sans-serif',
                 }}
               >
                 <div
-                  className="border-b-2 border-black flex items-end justify-between gap-4 shrink-0"
-                  style={{ paddingBottom: '2mm', marginBottom: '4mm' }}
+                  className="border-b-2 border-black flex items-end justify-between shrink-0"
+                  style={{
+                    paddingBottom: '2mm',
+                    marginBottom: '4mm',
+                    gap: '4mm',
+                  }}
                 >
                   <div>
-                    <h1 className="text-base font-bold text-black leading-tight">
+                    <h1
+                      className="font-bold text-black leading-tight"
+                      style={{ fontSize: '11.5pt' }}
+                    >
                       {comercio.nombre} — Carta en Sistema Braille (Formato A4)
                     </h1>
-                    <p className="text-[10px] text-slate-700 mt-0.5">
-                      Celda 6,5 × 4,0 mm · Puntos 2,5 mm · Celdas contiguas 6,0
-                      mm · Interlineado 10,0 mm (escala real 1:1).
+                    <p
+                      className="text-slate-700"
+                      style={{ fontSize: '7.5pt', marginTop: '0.6mm' }}
+                    >
+                      Celda {geometry.cellWidthMm.toFixed(1).replace('.', ',')} ×{' '}
+                      {geometry.cellHeightMm.toFixed(1).replace('.', ',')} mm ·
+                      Puntos{' '}
+                      {geometry.dotSpacingMm.toFixed(1).replace('.', ',')} mm ·
+                      Paso H {geometry.stepXMm.toFixed(1).replace('.', ',')} mm ×
+                      V {geometry.stepYMm.toFixed(1).replace('.', ',')} mm (escala
+                      100%).
                     </p>
                   </div>
-                  <span className="text-[10px] font-bold text-black shrink-0">
+                  <span
+                    className="font-bold text-black shrink-0"
+                    style={{ fontSize: '8pt' }}
+                  >
                     Hoja {pageIdx + 1} de {brailleSheetPages.length}
                   </span>
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1" style={{ overflow: 'visible' }}>
                   <BrailleSvg
                     lines={pageRows}
+                    geometry={geometry}
+                    offsetXMm={calibration.offsetXMm}
+                    offsetYMm={calibration.offsetYMm}
                     showGuide={brailleConGuia}
-                    showEmptyDots={showEmptyDots}
+                    showEmptyDots={calibration.showEmptyDots}
+                    fixedCols={maxColsFullSheet}
                     ariaLabel={`${comercio.nombre} Carta Braille Hoja ${
                       pageIdx + 1
                     }`}
                   />
                 </div>
+
+                {calibration.showVerificationRuler && (
+                  <footer
+                    className="border-t border-black flex items-center justify-between shrink-0 mt-auto"
+                    style={{ paddingTop: '1.5mm', fontSize: '7pt' }}
+                  >
+                    <VerificationRulerMm />
+                    <span>
+                      Desplazamiento matriz: X={calibration.offsetXMm} mm · Y=
+                      {calibration.offsetYMm} mm
+                    </span>
+                  </footer>
+                )}
               </section>
             );
           })}
@@ -541,8 +969,13 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
       {/* MODO 3: OBLEA MUNICIPAL Y TARJETA QR DE MESA A4 */}
       {mode === 'oblea_qr' && (
         <section
-          className="a4-sheet mx-auto bg-white border border-slate-300 rounded-lg p-8 sm:p-12 text-black"
-          style={{ maxWidth: '210mm', minHeight: '297mm' }}
+          className="a4-sheet mx-auto bg-white border border-slate-300 rounded-lg text-black"
+          style={{
+            width: '210mm',
+            minHeight: '296.5mm',
+            padding: '10mm',
+            boxSizing: 'border-box',
+          }}
         >
           {/* Oblea Principal */}
           <div className="border-4 border-slate-900 rounded-2xl p-8 text-center space-y-5">

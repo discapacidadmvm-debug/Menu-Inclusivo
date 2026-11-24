@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 interface QrSvgProps {
   value: string;
   size: number;
+  unit?: 'px' | 'mm';
   title: string;
   quietZone?: number;
 }
@@ -11,6 +12,7 @@ interface QrSvgProps {
 export const QrSvg: React.FC<QrSvgProps> = ({
   value,
   size,
+  unit = 'px',
   title,
   quietZone = 2,
 }) => {
@@ -34,11 +36,13 @@ export const QrSvg: React.FC<QrSvgProps> = ({
     }
   }, [value, quietZone]);
 
+  const dimValue = unit === 'mm' ? `${size}mm` : size;
+
   if (!svgData) {
     return (
       <div
         className="flex items-center justify-center bg-slate-100 text-xs text-slate-600 text-center p-2"
-        style={{ width: size, height: size }}
+        style={{ width: dimValue, height: dimValue }}
       >
         URL inválida para QR
       </div>
@@ -49,12 +53,17 @@ export const QrSvg: React.FC<QrSvgProps> = ({
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`0 0 ${svgData.total} ${svgData.total}`}
-      width={size}
-      height={size}
+      width={dimValue}
+      height={dimValue}
       shapeRendering="crispEdges"
       role="img"
       aria-label={title}
       className="block bg-white"
+      style={
+        unit === 'mm'
+          ? { width: dimValue, height: dimValue, maxWidth: 'none' }
+          : undefined
+      }
     >
       <rect width={svgData.total} height={svgData.total} fill="#ffffff" />
       <path d={svgData.path} fill="#0f172a" />
