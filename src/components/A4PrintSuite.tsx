@@ -60,6 +60,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
 }) => {
   const [mode, setMode] = useState<PrintMode>('pictogramas');
   const [brailleConGuia, setBrailleConGuia] = useState(true);
+  const [showCuadratinYPuntos, setShowCuadratinYPuntos] = useState(true);
+  const [mirrorRtl, setMirrorRtl] = useState(false);
 
   const geometry = BRAILLE_GEOMETRY_PRESETS.slate_portrait;
 
@@ -82,11 +84,11 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
     [platosActivosOrdenados]
   );
 
-  // 26 celdas x 6,35 mm <= 174 mm disponibles junto al QR
-  const maxColsCard = 26;
+  // 27 celdas x 6,0 mm -> 160 mm <= 170 mm disponibles junto al QR
+  const maxColsCard = 27;
   const maxRowsCard = 3;
 
-  // 28 celdas x 6,35 mm <= 194 mm imprimibles A4
+  // 28 celdas x 6,0 mm -> 166 mm <= 194 mm imprimibles A4
   const maxColsFullSheet = 28;
   const maxRowsFullSheet = 25;
 
@@ -181,6 +183,37 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {(mode === 'pictogramas' || mode === 'braille') && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowCuadratinYPuntos((v) => !v)}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border rounded-lg cursor-pointer whitespace-nowrap transition-colors ${
+                  showCuadratinYPuntos
+                    ? 'bg-slate-900 border-slate-900 text-white'
+                    : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                {showCuadratinYPuntos
+                  ? 'Cuadratín y 6 puntos: visibles'
+                  : 'Mostrar cuadratín y 6 puntos'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMirrorRtl((v) => !v)}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border rounded-lg cursor-pointer whitespace-nowrap transition-colors ${
+                  mirrorRtl
+                    ? 'bg-blue-700 border-blue-700 text-white'
+                    : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                {mirrorRtl
+                  ? 'Escritura tableta (Der → Izq)'
+                  : 'Lectura frontal (Izq → Der)'}
+              </button>
+            </>
+          )}
+
           {mode === 'braille' && (
             <>
               <button
@@ -464,7 +497,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                                   marginBottom: '0.8mm',
                                 }}
                               >
-                                Braille:
+                                {mirrorRtl ? 'Braille (Tableta Der → Izq):' : 'Braille:'}
                               </p>
                               <BrailleSvg
                                 lines={wrappedBraille.map((row) => ({
@@ -473,7 +506,10 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                                 }))}
                                 geometry={geometry}
                                 showGuide={false}
-                                showEmptyDots={false}
+                                showEmptyDots={showCuadratinYPuntos}
+                                showCellBox={showCuadratinYPuntos}
+                                mirrorRtl={mirrorRtl}
+                                fixedCols={mirrorRtl ? maxColsCard : undefined}
                                 ariaLabel={brPlain}
                               />
                             </div>
@@ -540,7 +576,10 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                     className="font-bold text-black truncate min-w-0"
                     style={{ fontSize: '14pt', lineHeight: 1.1 }}
                   >
-                    {comercio.nombre} — Carta Braille
+                    {comercio.nombre} —{' '}
+                    {mirrorRtl
+                      ? 'Carta Braille (Tableta Der → Izq)'
+                      : 'Carta Braille'}
                   </h1>
                   <span
                     className="font-bold text-black shrink-0"
@@ -555,7 +594,9 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                     lines={pageRows}
                     geometry={geometry}
                     showGuide={brailleConGuia}
-                    showEmptyDots={false}
+                    showEmptyDots={showCuadratinYPuntos}
+                    showCellBox={showCuadratinYPuntos}
+                    mirrorRtl={mirrorRtl}
                     fixedCols={maxColsFullSheet}
                     ariaLabel={`${comercio.nombre} Carta Braille Hoja ${
                       pageIdx + 1

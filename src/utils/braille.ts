@@ -204,9 +204,10 @@ export function buildBraillePlainTextExport(
 
 /**
  * Especificaciones físicas calibradas con la tableta Braille real (en milímetros):
- * - Dimensión de celda (6 puntos): 6,5 mm × 4,0 mm
+ * - Dimensión de celda / cuadratín (6 puntos): 4,0 mm ancho × 6,5 mm alto
  * - Distancia entre centros de puntos (H y V): 2,5 mm (radio de punto 0,75 mm / Ø 1,5 mm)
- * - Separación libre entre celdas: 2,3 mm (lado de 4,0 mm -> paso 6,3 mm) y 3,5 mm (lado de 6,5 mm -> paso 10,0 mm)
+ * - Paso horizontal entre celdas contiguas (centro a centro): 6,0 mm (2,0 mm libres entre cuadratines)
+ * - Paso vertical entre renglones (centro a centro): 10,0 mm (3,5 mm libres entre cuadratines)
  */
 export type BrailleOrientationMode = 'slate_portrait' | 'slate_rotated_90';
 
@@ -235,9 +236,9 @@ export const BRAILLE_GEOMETRY_PRESETS: Record<
     cellHeightMm: 6.5,
     dotSpacingMm: 2.5,
     dotRadiusMm: 0.75,
-    freeGapXMm: 2.35,
+    freeGapXMm: 2.0,
     freeGapYMm: 3.5,
-    stepXMm: 6.35,
+    stepXMm: 6.0,
     stepYMm: 10.0,
     rotated90: false,
   },
@@ -249,9 +250,9 @@ export const BRAILLE_GEOMETRY_PRESETS: Record<
     dotSpacingMm: 2.5,
     dotRadiusMm: 0.75,
     freeGapXMm: 3.5,
-    freeGapYMm: 2.35,
+    freeGapYMm: 2.0,
     stepXMm: 10.0,
-    stepYMm: 6.35,
+    stepYMm: 6.0,
     rotated90: true,
   },
 };
@@ -260,9 +261,9 @@ export const BRAILLE_SPECS_MM = {
   cellHeightMm: 6.5,
   cellWidthMm: 4.0,
   dotSpacingMm: 2.5,
-  cellPitchMm: 6.35,
+  cellPitchMm: 6.0,
   lineSpacingMm: 10.0,
-  freeGapHorizontalMm: 2.35,
+  freeGapHorizontalMm: 2.0,
   freeGapVerticalMm: 3.5,
   dotRadiusMm: 0.75,
   pictogramMaxHeightMm: 15.0,

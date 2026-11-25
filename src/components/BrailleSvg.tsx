@@ -17,6 +17,8 @@ interface BrailleSvgProps {
   offsetYMm?: number;
   showGuide?: boolean;
   showEmptyDots?: boolean;
+  showCellBox?: boolean;
+  mirrorRtl?: boolean;
   fixedCols?: number;
   ariaLabel?: string;
   className?: string;
@@ -24,7 +26,7 @@ interface BrailleSvgProps {
 
 /**
  * Renderizador vectorial Braille a escala física exacta (1:1 en milímetros, sin píxeles).
- * Todas las coordenadas, radios, pasos y traslaciones se expresan en mm reales.
+ * Todas las coordenadas, radios, pasos, cuadratines y traslaciones se expresan en mm reales.
  */
 export const BrailleSvg: React.FC<BrailleSvgProps> = ({
   lines,
@@ -32,7 +34,9 @@ export const BrailleSvg: React.FC<BrailleSvgProps> = ({
   offsetXMm = 0,
   offsetYMm = 0,
   showGuide = false,
-  showEmptyDots = false,
+  showEmptyDots = true,
+  showCellBox = true,
+  mirrorRtl = false,
   fixedCols,
   ariaLabel,
   className = '',
@@ -71,6 +75,8 @@ export const BrailleSvg: React.FC<BrailleSvgProps> = ({
   );
 
   // Posiciones relativas de los 6 puntos dentro de la celda (distancia centro a centro = 2,5 mm)
+  // En modo escritura tableta/punzón (mirrorRtl), las columnas izquierda/derecha se espejan:
+  // puntos 1,2,3 quedan a la derecha y 4,5,6 a la izquierda para punzar de derecha a izquierda desde el dorso.
   const dotOffsets: ReadonlyArray<readonly [number, number]> = rotated90
     ? [
         [dotRadiusMm + dotSpacingMm * 2, dotRadiusMm], // Punto 1
@@ -80,14 +86,23 @@ export const BrailleSvg: React.FC<BrailleSvgProps> = ({
         [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm], // Punto 5
         [dotRadiusMm, dotRadiusMm + dotSpacingMm], // Punto 6
       ]
-    : [
-        [dotRadiusMm, dotRadiusMm], // Punto 1 (sup-izq)
-        [dotRadiusMm, dotRadiusMm + dotSpacingMm], // Punto 2 (med-izq)
-        [dotRadiusMm, dotRadiusMm + dotSpacingMm * 2], // Punto 3 (inf-izq)
-        [dotRadiusMm + dotSpacingMm, dotRadiusMm], // Punto 4 (sup-der)
-        [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm], // Punto 5 (med-der)
-        [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm * 2], // Punto 6 (inf-der)
-      ];
+    : mirrorRtl
+      ? [
+          [dotRadiusMm + dotSpacingMm, dotRadiusMm], // Punto 1 (espejado sup-der)
+          [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm], // Punto 2 (espejado med-der)
+          [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm * 2], // Punto 3 (espejado inf-der)
+          [dotRadiusMm, dotRadiusMm], // Punto 4 (espejado sup-izq)
+          [dotRadiusMm, dotRadiusMm + dotSpacingMm], // Punto 5 (espejado med-izq)
+          [dotRadiusMm, dotRadiusMm + dotSpacingMm * 2], // Punto 6 (espejado inf-izq)
+        ]
+      : [
+          [dotRadiusMm, dotRadiusMm], // Punto 1 (sup-izq)
+          [dotRadiusMm, dotRadiusMm + dotSpacingMm], // Punto 2 (med-izq)
+          [dotRadiusMm, dotRadiusMm + dotSpacingMm * 2], // Punto 3 (inf-izq)
+          [dotRadiusMm + dotSpacingMm, dotRadiusMm], // Punto 4 (sup-der)
+          [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm], // Punto 5 (med-der)
+          [dotRadiusMm + dotSpacingMm, dotRadiusMm + dotSpacingMm * 2], // Punto 6 (inf-der)
+        ];
 
   const guideFontSizeMm = rotated90 ? 1.65 : 2.1;
   const guideOffsetFromCellBottomMm = rotated90 ? 1.75 : 2.45;
@@ -125,10 +140,23 @@ export const BrailleSvg: React.FC<BrailleSvgProps> = ({
         return (
           <g key={`row-${rowIdx}`}>
             {line.cells.map((ch, colIdx) => {
-              const x0 = Number((colIdx * stepXMm).toFixed(3));
+              const visualCol = mirrorRtl ? maxCols - 1 - colIdx : colIdx;
+              const x0 = Number((visualCol * stepXMm).toFixed(3));
               const dots = brailleCharToDots(ch);
               return (
                 <g key={`cell-${rowIdx}-${colIdx}`}>
+                  {showCellBox && (
+                    <rect
+                      x={x0}
+                      y={y0}
+                      width={cellWidthMm}
+                      height={cellHeightMm}
+                      rx={0.25}
+                      fill="none"
+                      stroke="#64748b"
+                      strokeWidth={0.2}
+                    />
+                  )}
                   {dots.map((active, dotIdx) => {
                     const [dx, dy] = dotOffsets[dotIdx];
                     const cx = Number((x0 + dx).toFixed(3));
@@ -150,8 +178,10 @@ export const BrailleSvg: React.FC<BrailleSvgProps> = ({
                           key={`dot-empty-${dotIdx}`}
                           cx={cx}
                           cy={cy}
-                          r={0.28}
-                          fill="#94a3b8"
+                          r={0.38}
+                          fill="#ffffff"
+                          stroke="#64748b"
+                          strokeWidth={0.18}
                         />
                       );
                     }
@@ -163,10 +193,11 @@ export const BrailleSvg: React.FC<BrailleSvgProps> = ({
 
             {hasAnyGuide && line.guide && (
               <text
-                x={0}
+                x={mirrorRtl ? widthMm : 0}
                 y={Number(
                   (y0 + cellHeightMm + guideOffsetFromCellBottomMm).toFixed(2)
                 )}
+                textAnchor={mirrorRtl ? 'end' : 'start'}
                 fontSize={guideFontSizeMm}
                 fill="#475569"
                 fontFamily="Verdana, Helvetica, Arial, sans-serif"
