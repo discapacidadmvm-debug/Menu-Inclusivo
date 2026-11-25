@@ -216,8 +216,8 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-6">
         <div className="text-center space-y-2">
-          <p className="text-lg font-semibold text-slate-900">Cargando carta inclusiva...</p>
-          <p className="text-sm text-slate-600">Preparando pictogramas y lectura por voz</p>
+          <p className="text-[18pt] font-semibold text-slate-900">Cargando carta inclusiva...</p>
+          <p className="text-[14pt] text-slate-700">Preparando pictogramas y lectura por voz</p>
         </div>
       </div>
     );
@@ -227,13 +227,13 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-xl p-6 text-center space-y-4">
-          <h1 className="text-xl font-bold text-slate-900">Carta no disponible</h1>
-          <p className="text-sm text-slate-600">{error}</p>
+          <h1 className="text-[18pt] font-bold text-slate-900">Carta no disponible</h1>
+          <p className="text-[14pt] text-slate-700">{error}</p>
           {onExit && (
             <button
               type="button"
               onClick={onExit}
-              className="px-4 py-2 text-sm font-medium bg-slate-900 text-white rounded-lg cursor-pointer"
+              className="px-4 py-2 text-[14pt] font-medium bg-slate-900 text-white rounded-lg cursor-pointer"
             >
               Volver al portal
             </button>
@@ -262,13 +262,13 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                 <button
                   type="button"
                   onClick={onExit}
-                  className={`inline-flex items-center gap-1.5 text-sm font-medium mb-1 cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 text-[14pt] font-medium mb-1 cursor-pointer ${
                     highContrast
                       ? 'text-black underline'
                       : 'text-blue-700 hover:text-blue-900'
                   }`}
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-5 h-5" />
                   Volver a Carta Inclusiva
                 </button>
               )}
@@ -281,20 +281,20 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               </h1>
               <div
                 className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${
-                  largeText ? 'text-base' : 'text-sm'
-                } ${highContrast ? 'text-black font-medium' : 'text-slate-600'}`}
+                  largeText ? 'text-[16pt]' : 'text-[14pt]'
+                } ${highContrast ? 'text-black font-medium' : 'text-slate-700'}`}
               >
                 <span>{comercio.rubro}</span>
                 <span aria-hidden="true">·</span>
                 <span className="inline-flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <MapPin className="w-4 h-4 shrink-0" />
                   {comercio.direccion}
                 </span>
                 {comercio.telefono && (
                   <>
                     <span aria-hidden="true">·</span>
                     <span className="inline-flex items-center gap-1 font-mono-tabular">
-                      <Phone className="w-3.5 h-3.5 shrink-0" />
+                      <Phone className="w-4 h-4 shrink-0" />
                       {comercio.telefono}
                     </span>
                   </>
@@ -303,10 +303,10 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
             </div>
 
             <div className="text-left sm:text-right">
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+              <p className="text-[14pt] font-semibold uppercase tracking-wide text-emerald-900">
                 Oblea {comercio.obleaNumero}
               </p>
-              <p className="text-xs text-slate-600 max-w-xs">{strings.inclusiveSeal}</p>
+              <p className="text-[14pt] text-slate-700 max-w-sm">{strings.inclusiveSeal}</p>
             </div>
           </div>
 
@@ -321,9 +321,9 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
             <div className="flex flex-wrap items-center gap-3">
               <label
                 htmlFor="idioma-selector"
-                className="inline-flex items-center gap-2 text-sm font-semibold"
+                className="inline-flex items-center gap-2 text-[14pt] font-semibold"
               >
-                <Globe className="w-4 h-4" />
+                <Globe className="w-5 h-5" />
                 Idioma / Language:
               </label>
               <select
@@ -333,7 +333,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                   handleStopAll();
                   setIdioma(e.target.value as IdiomaCodigo);
                 }}
-                className={`px-3 py-2 rounded-lg text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                className={`px-3 py-2 rounded-lg text-[14pt] font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                   highContrast
                     ? 'bg-white border-black text-black'
                     : 'bg-white border-slate-300 text-slate-900'
@@ -346,7 +346,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                 ))}
               </select>
               {translating && (
-                <span className="text-xs font-medium text-blue-700">
+                <span className="text-[14pt] font-medium text-blue-700">
                   Traduciendo carta...
                 </span>
               )}
@@ -356,7 +356,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               <button
                 type="button"
                 onClick={handleListenFullMenu}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-[14pt] font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                   speakingId === 'FULL'
                     ? 'bg-red-700 text-white hover:bg-red-800'
                     : highContrast
@@ -366,12 +366,12 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               >
                 {speakingId === 'FULL' ? (
                   <>
-                    <Square className="w-4 h-4 fill-current" />
+                    <Square className="w-5 h-5 fill-current" />
                     {strings.stopAudio}
                   </>
                 ) : (
                   <>
-                    <Volume2 className="w-4 h-4" />
+                    <Volume2 className="w-5 h-5" />
                     {strings.listenFullMenu}
                   </>
                 )}
@@ -387,7 +387,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                     key={spd.val}
                     type="button"
                     onClick={() => setSpeechRate(spd.val)}
-                    className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                    className={`px-3 py-1 text-[14pt] font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
                       speechRate === spd.val
                         ? 'bg-slate-900 text-white'
                         : 'text-slate-700 hover:bg-slate-100'
@@ -406,10 +406,10 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedCategory('ALL')}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3.5 py-2 rounded-lg text-[14pt] font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   selectedCategory === 'ALL'
                     ? 'bg-slate-900 text-white'
-                    : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                    : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-100'
                 }`}
               >
                 {strings.allCategories}
@@ -419,10 +419,10 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  className={`px-3.5 py-2 rounded-lg text-[14pt] font-medium transition-colors whitespace-nowrap cursor-pointer ${
                     selectedCategory === cat
                       ? 'bg-slate-900 text-white'
-                      : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'
+                      : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-100'
                   }`}
                 >
                   {CATEGORY_TRANSLATIONS[cat]?.[idioma] || cat}
@@ -434,7 +434,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               <button
                 type="button"
                 onClick={() => setOnlySinTacc((v) => !v)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-2 rounded-lg text-[14pt] font-medium border transition-colors whitespace-nowrap cursor-pointer ${
                   onlySinTacc
                     ? 'bg-emerald-800 border-emerald-800 text-white'
                     : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
@@ -446,26 +446,26 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               <button
                 type="button"
                 onClick={() => setHighContrast((v) => !v)}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[14pt] font-medium border transition-colors whitespace-nowrap cursor-pointer ${
                   highContrast
                     ? 'bg-black border-black text-white'
                     : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
                 }`}
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-5 h-5" />
                 {strings.highContrast}
               </button>
 
               <button
                 type="button"
                 onClick={() => setLargeText((v) => !v)}
-                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[14pt] font-medium border transition-colors whitespace-nowrap cursor-pointer ${
                   largeText
                     ? 'bg-slate-900 border-slate-900 text-white'
                     : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-100'
                 }`}
               >
-                <TypeIcon className="w-4 h-4" />
+                <TypeIcon className="w-5 h-5" />
                 {strings.largeText}
               </button>
             </div>
@@ -477,7 +477,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {focusedPlatoId && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-blue-950">
+            <p className="text-[14pt] font-semibold text-blue-950">
               {focusedDishExists
                 ? 'Mostrando el plato seleccionado por código QR.'
                 : 'El plato solicitado por QR no está disponible actualmente; mostrando toda la carta.'}
@@ -486,7 +486,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
               <button
                 type="button"
                 onClick={onClearFocus}
-                className="px-3.5 py-1.5 text-xs font-semibold bg-blue-700 text-white rounded-lg hover:bg-blue-800 cursor-pointer"
+                className="px-3.5 py-1.5 text-[14pt] font-semibold bg-blue-700 text-white rounded-lg hover:bg-blue-800 cursor-pointer"
               >
                 Ver toda la carta
               </button>
@@ -496,7 +496,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
 
         {filteredPlatos.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
-            <p className="text-base font-medium text-slate-700">{strings.noItemsMatch}</p>
+            <p className="text-[15pt] font-medium text-slate-800">{strings.noItemsMatch}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -524,9 +524,9 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                           className="w-full h-full object-cover min-h-[210px] max-h-[300px] md:max-h-none"
                         />
                       ) : (
-                        <div className="w-full h-full min-h-[210px] flex flex-col items-center justify-center p-6 text-slate-500 bg-slate-100">
-                          <UtensilsCrossed className="w-10 h-10 mb-2 text-slate-400" />
-                          <span className="text-sm font-medium text-center">
+                        <div className="w-full h-full min-h-[210px] flex flex-col items-center justify-center p-6 text-slate-700 bg-slate-100">
+                          <UtensilsCrossed className="w-10 h-10 mb-2 text-slate-500" />
+                          <span className="text-[14pt] font-medium text-center">
                             {view.nombre}
                           </span>
                         </div>
@@ -539,15 +539,15 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="space-y-1">
                             <p
-                              className={`text-xs font-semibold uppercase tracking-wide ${
-                                highContrast ? 'text-black' : 'text-slate-500'
-                              }`}
+                              className={`font-semibold uppercase tracking-wide ${
+                                largeText ? 'text-[16pt]' : 'text-[14pt]'
+                              } ${highContrast ? 'text-black' : 'text-slate-700'}`}
                             >
                               {view.categoria}
                             </p>
                             <h2
                               className={`font-bold leading-snug ${
-                                largeText ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+                                largeText ? 'text-[22pt] sm:text-[26pt]' : 'text-[17pt] sm:text-[20pt]'
                               }`}
                             >
                               {view.nombre}
@@ -557,12 +557,18 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                           <div className="text-right shrink-0">
                             <span
                               className={`font-mono-tabular font-bold ${
-                                largeText ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'
+                                largeText ? 'text-[22pt] sm:text-[26pt]' : 'text-[17pt] sm:text-[20pt]'
                               } ${highContrast ? 'text-black' : 'text-slate-900'}`}
                             >
                               {formatArs(plato.precioArs)}
                             </span>
-                            <p className="text-xs text-slate-500">ARS</p>
+                            <p
+                              className={`${
+                                largeText ? 'text-[15pt]' : 'text-[14pt]'
+                              } ${highContrast ? 'text-black' : 'text-slate-700'}`}
+                            >
+                              ARS
+                            </p>
                           </div>
                         </div>
 
@@ -575,8 +581,8 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                         {view.descripcion && (
                           <p
                             className={`leading-relaxed ${
-                              largeText ? 'text-lg' : 'text-base'
-                            } ${highContrast ? 'text-black' : 'text-slate-700'}`}
+                              largeText ? 'text-[17pt]' : 'text-[14pt]'
+                            } ${highContrast ? 'text-black' : 'text-slate-800'}`}
                           >
                             {view.descripcion}
                           </p>
@@ -586,9 +592,9 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                         {view.pictogramas.length > 0 && (
                           <div className="pt-2">
                             <p
-                              className={`text-xs font-semibold uppercase tracking-wide mb-2.5 ${
-                                highContrast ? 'text-black' : 'text-slate-600'
-                              }`}
+                              className={`font-semibold uppercase tracking-wide mb-2.5 ${
+                                largeText ? 'text-[15pt]' : 'text-[14pt]'
+                              } ${highContrast ? 'text-black' : 'text-slate-700'}`}
                             >
                               {strings.ingredientsLabel}
                             </p>
@@ -596,7 +602,7 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                               {view.pictogramas.map((pg, idx) => (
                                 <div
                                   key={`${pg.id}-${idx}`}
-                                  className={`flex flex-col items-center p-2.5 rounded-lg border w-24 sm:w-28 text-center ${
+                                  className={`flex flex-col items-center p-3 rounded-lg border min-w-[128px] max-w-[190px] text-center ${
                                     highContrast
                                       ? 'bg-white border-black border-2'
                                       : 'bg-slate-50 border-slate-200'
@@ -609,8 +615,8 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                                     className="w-16 h-16 object-contain bg-white rounded border border-slate-200 p-1"
                                   />
                                   <span
-                                    className={`mt-1.5 font-semibold leading-tight ${
-                                      largeText ? 'text-sm' : 'text-xs'
+                                    className={`mt-1.5 font-semibold leading-tight break-words ${
+                                      largeText ? 'text-[16pt]' : 'text-[14pt]'
                                     } ${highContrast ? 'text-black' : 'text-slate-900'}`}
                                   >
                                     {pg.label}
@@ -622,16 +628,16 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                         )}
                         {/* Alfabeto Braille del plato y precio */}
                         <div
-                          className={`rounded-lg border px-3.5 py-2.5 space-y-0.5 ${
+                          className={`rounded-lg border px-3.5 py-2.5 space-y-1 ${
                             highContrast
                               ? 'bg-white border-black border-2'
                               : 'bg-slate-50 border-slate-200'
                           }`}
                         >
                           <p
-                            className={`text-[11px] font-semibold uppercase tracking-wide ${
-                              highContrast ? 'text-black' : 'text-slate-600'
-                            }`}
+                            className={`font-semibold uppercase tracking-wide ${
+                              largeText ? 'text-[15pt]' : 'text-[14pt]'
+                            } ${highContrast ? 'text-black' : 'text-slate-700'}`}
                           >
                             Sistema Braille (Plato y Precio)
                           </p>
@@ -645,12 +651,16 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                               <>
                                 <p
                                   className={`tracking-wider break-words select-all ${
-                                    largeText ? 'text-2xl' : 'text-xl'
+                                    largeText ? 'text-3xl' : 'text-2xl'
                                   } ${highContrast ? 'text-black font-bold' : 'text-slate-950'}`}
                                 >
                                   {br.braille}
                                 </p>
-                                <p className="text-xs font-mono-tabular text-slate-500">
+                                <p
+                                  className={`font-mono-tabular ${
+                                    largeText ? 'text-[16pt]' : 'text-[14pt]'
+                                  } ${highContrast ? 'text-black' : 'text-slate-700'}`}
+                                >
                                   {br.plain}
                                 </p>
                               </>
@@ -664,7 +674,9 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                           <button
                             type="button"
                             onClick={() => handleListenDish(plato)}
-                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                              largeText ? 'text-[16pt]' : 'text-[14pt]'
+                            } ${
                               isSpeakingThis
                                 ? 'bg-red-700 text-white hover:bg-red-800'
                                 : highContrast
@@ -674,12 +686,12 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                           >
                             {isSpeakingThis ? (
                               <>
-                                <Square className="w-4 h-4 fill-current" />
+                                <Square className="w-5 h-5 fill-current" />
                                 {strings.stopAudio}
                               </>
                             ) : (
                               <>
-                                <Volume2 className="w-4 h-4" />
+                                <Volume2 className="w-5 h-5" />
                                 {strings.listenDish}
                               </>
                             )}
@@ -692,13 +704,15 @@ export const PublicDigitalMenu: React.FC<PublicDigitalMenuProps> = ({
                                 curr === plato.id ? null : plato.id
                               )
                             }
-                            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-colors whitespace-nowrap cursor-pointer ${
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg font-semibold border transition-colors whitespace-nowrap cursor-pointer ${
+                              largeText ? 'text-[16pt]' : 'text-[14pt]'
+                            } ${
                               highContrast
                                 ? 'bg-white border-black text-black'
                                 : 'bg-white border-slate-300 text-slate-800 hover:bg-slate-50'
                             }`}
                           >
-                            <QrCode className="w-4 h-4" />
+                            <QrCode className="w-5 h-5" />
                             {openQrPlatoId === plato.id
                               ? 'Ocultar QR del plato'
                               : 'QR de este plato'}

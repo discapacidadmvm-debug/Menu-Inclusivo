@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface SinTaccLogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'print14';
   highContrast?: boolean;
   className?: string;
 }
@@ -13,14 +13,31 @@ export const SinTaccLogo: React.FC<SinTaccLogoProps> = ({
 }) => {
   const dims =
     size === 'sm'
-      ? { box: 'h-6 w-6', text: 'text-xs' }
-      : size === 'lg'
-        ? { box: 'h-10 w-10', text: 'text-base' }
-        : { box: 'h-8 w-8', text: 'text-sm' };
+      ? { box: 'h-6 w-6', text: 'text-xs', style: undefined }
+      : size === 'print14'
+        ? {
+            box: '',
+            text: '',
+            style: { fontSize: '14pt', lineHeight: 1.05 } as React.CSSProperties,
+            svgStyle: { width: '5.5mm', height: '5.5mm' } as React.CSSProperties,
+          }
+        : size === 'lg'
+          ? {
+              box: 'h-10 w-10',
+              text: '',
+              style: { fontSize: '17pt', lineHeight: 1.1 } as React.CSSProperties,
+              svgStyle: undefined,
+            }
+          : {
+              box: 'h-8 w-8',
+              text: '',
+              style: { fontSize: '14pt', lineHeight: 1.1 } as React.CSSProperties,
+              svgStyle: undefined,
+            };
 
   return (
     <span
-      className={`inline-flex items-center gap-2 font-semibold ${
+      className={`inline-flex items-center gap-1.5 font-semibold ${
         highContrast ? 'text-black' : 'text-emerald-900'
       } ${className}`}
       aria-label="Alimento Libre de TACC - Apto para celíacos"
@@ -28,6 +45,7 @@ export const SinTaccLogo: React.FC<SinTaccLogoProps> = ({
       <svg
         viewBox="0 0 64 64"
         className={`${dims.box} shrink-0`}
+        style={dims.svgStyle}
         role="img"
         aria-hidden="true"
       >
@@ -61,7 +79,10 @@ export const SinTaccLogo: React.FC<SinTaccLogoProps> = ({
           strokeLinecap="round"
         />
       </svg>
-      <span className={`${dims.text} font-bold tracking-tight whitespace-nowrap`}>
+      <span
+        className={`${dims.text} font-bold tracking-tight whitespace-nowrap`}
+        style={dims.style}
+      >
         Libre de TACC
       </span>
     </span>

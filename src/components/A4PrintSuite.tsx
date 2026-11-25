@@ -137,8 +137,8 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const cardHeightMm = 87.5;
-  const cardGapMm = 2.5;
+  const cardHeightMm = 88.5;
+  const cardGapMm = 1.5;
 
   return (
     <div className="space-y-4">
@@ -213,7 +213,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
         </div>
       </div>
 
-      {/* MODO 1: CARTA A4 CON PICTOGRAMAS, BRAILLE EXACTO Y QR (3 MENÚES POR HOJA) */}
+      {/* MODO 1: CARTA A4 CON PICTOGRAMAS, BRAILLE EXACTO Y QR (3 MENÚES POR HOJA, TEXTO >= 14 PT) */}
       {mode === 'pictogramas' && (
         <div className="a4-scroll-wrap overflow-x-auto space-y-6">
           {platosPages.length === 0 ? (
@@ -226,7 +226,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                 boxSizing: 'border-box',
               }}
             >
-              <p style={{ fontSize: '12pt' }}>
+              <p style={{ fontSize: '14pt', fontWeight: 600 }}>
                 No hay platos activos cargados para imprimir.
               </p>
             </section>
@@ -247,54 +247,32 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                     fontFamily: 'Verdana, Helvetica, Arial, sans-serif',
                   }}
                 >
-                  {/* Encabezado compacto (8,5 mm + 1 mm margen = 9,5 mm) */}
+                  {/* Encabezado compacto en 14 pt (7,5 mm + 1,5 mm margen = 9,0 mm) */}
                   <header
-                    className="border-b-2 border-black flex items-end justify-between shrink-0"
+                    className="border-b-2 border-black flex items-center justify-between shrink-0"
                     style={{
-                      height: '8.5mm',
+                      height: '7.5mm',
                       paddingBottom: '1mm',
-                      marginBottom: '1mm',
+                      marginBottom: '1.5mm',
                       gap: '4mm',
                       boxSizing: 'border-box',
                     }}
                   >
-                    <div className="min-w-0">
-                      <p
-                        className="font-bold uppercase tracking-wider text-slate-700 leading-none"
-                        style={{ fontSize: '7pt' }}
-                      >
-                        Carta Inclusiva — Municipalidad de Vicuña Mackenna
-                      </p>
-                      <h1
-                        className="font-bold text-black leading-tight truncate"
-                        style={{ fontSize: '11.5pt', marginTop: '0.5mm' }}
-                      >
-                        {comercio.nombre}{' '}
-                        <span
-                          className="font-normal text-slate-700"
-                          style={{ fontSize: '8.5pt' }}
-                        >
-                          · {comercio.rubro} · {comercio.direccion}
-                        </span>
-                      </h1>
-                    </div>
-                    <div className="text-right shrink-0 leading-tight">
-                      <p
-                        className="font-bold text-black"
-                        style={{ fontSize: '7.5pt' }}
-                      >
-                        Oblea Nº {comercio.obleaNumero} · ARS
-                      </p>
-                      <p
-                        className="text-slate-700"
-                        style={{ fontSize: '7pt' }}
-                      >
-                        Hoja {pageIdx + 1} de {platosPages.length}
-                      </p>
-                    </div>
+                    <h1
+                      className="font-bold text-black truncate min-w-0"
+                      style={{ fontSize: '14pt', lineHeight: 1.05 }}
+                    >
+                      {comercio.nombre}
+                    </h1>
+                    <p
+                      className="font-bold text-black shrink-0"
+                      style={{ fontSize: '14pt', lineHeight: 1.05 }}
+                    >
+                      Oblea Nº {comercio.obleaNumero} · Pág {pageIdx + 1}/{platosPages.length}
+                    </p>
                   </header>
 
-                  {/* Contenedor de 3 menúes con paso vertical exacto (90,0 mm) */}
+                  {/* Contenedor de 3 menúes con paso vertical exacto (88,5 + 1,5 = 90,0 mm) */}
                   <div
                     className="flex flex-col shrink-0"
                     style={{ gap: `${cardGapMm}mm` }}
@@ -318,24 +296,24 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                             height: `${cardHeightMm}mm`,
                             border: '0.35mm solid #000000',
                             borderRadius: '1.2mm',
-                            padding: '2.2mm 3mm',
+                            padding: '1.8mm 2.5mm',
                             boxSizing: 'border-box',
                           }}
                         >
-                          {/* Bloque superior fijo (45,8 mm) para mantener todas las filas Braille alineadas */}
+                          {/* Bloque superior fijo (45,5 mm) para mantener todas las filas Braille alineadas */}
                           <div
                             className="shrink-0 overflow-hidden"
-                            style={{ height: '45.8mm' }}
+                            style={{ height: '45.5mm' }}
                           >
                             <div
                               className="flex items-start"
-                              style={{ height: '22mm', gap: '3mm' }}
+                              style={{ height: '25.2mm', gap: '3mm' }}
                             >
                               <div
                                 className="shrink-0 border border-slate-400 overflow-hidden bg-slate-50 flex items-center justify-center"
                                 style={{
-                                  width: '32mm',
-                                  height: '22mm',
+                                  width: '28mm',
+                                  height: '23mm',
                                   borderRadius: '1mm',
                                 }}
                               >
@@ -348,16 +326,17 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                                   />
                                 ) : (
                                   <div
-                                    className="flex flex-col items-center justify-center text-slate-600 text-center"
+                                    className="flex flex-col items-center justify-center text-slate-700 text-center"
                                     style={{ padding: '1mm' }}
                                   >
                                     <UtensilsCrossed
                                       style={{ width: '5mm', height: '5mm' }}
                                     />
                                     <span
-                                      className="font-semibold leading-tight"
+                                      className="font-bold line-clamp-2"
                                       style={{
-                                        fontSize: '6.5pt',
+                                        fontSize: '14pt',
+                                        lineHeight: 1.05,
                                         marginTop: '0.5mm',
                                       }}
                                     >
@@ -370,32 +349,32 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                               <div className="flex-1 min-w-0">
                                 <div
                                   className="flex items-center justify-between"
-                                  style={{ gap: '2mm' }}
+                                  style={{ gap: '2mm', height: '6mm' }}
                                 >
                                   <span
-                                    className="font-bold uppercase tracking-wide text-slate-700"
-                                    style={{ fontSize: '6.8pt' }}
+                                    className="font-bold uppercase tracking-wide text-black truncate"
+                                    style={{ fontSize: '14pt', lineHeight: 1.05 }}
                                   >
                                     {plato.categoria}
                                   </span>
                                   {plato.libreDeTacc && (
-                                    <SinTaccLogo size="sm" highContrast />
+                                    <SinTaccLogo size="print14" highContrast />
                                   )}
                                 </div>
 
                                 <div
                                   className="flex items-baseline justify-between"
-                                  style={{ gap: '2mm', marginTop: '0.5mm' }}
+                                  style={{ gap: '2mm', marginTop: '0.5mm', height: '6.3mm' }}
                                 >
                                   <h2
-                                    className="font-bold text-black leading-tight truncate"
-                                    style={{ fontSize: '11.5pt' }}
+                                    className="font-bold text-black truncate"
+                                    style={{ fontSize: '15pt', lineHeight: 1.05 }}
                                   >
                                     {plato.nombre}
                                   </h2>
                                   <span
-                                    className="font-bold font-mono-tabular text-black shrink-0 leading-tight"
-                                    style={{ fontSize: '12pt' }}
+                                    className="font-bold font-mono-tabular text-black shrink-0"
+                                    style={{ fontSize: '15pt', lineHeight: 1.05 }}
                                   >
                                     {formatArs(plato.precioArs)}
                                   </span>
@@ -403,9 +382,10 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
 
                                 {plato.descripcion && (
                                   <p
-                                    className="text-black leading-snug line-clamp-2"
+                                    className="text-black line-clamp-2"
                                     style={{
-                                      fontSize: '8.2pt',
+                                      fontSize: '14pt',
+                                      lineHeight: 1.12,
                                       marginTop: '0.6mm',
                                     }}
                                   >
@@ -417,42 +397,43 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
 
                             {plato.pictogramas.length > 0 && (
                               <div
-                                className="flex flex-wrap items-start overflow-hidden"
+                                className="flex flex-nowrap items-center overflow-hidden"
                                 style={{
                                   gap: '1.5mm',
-                                  marginTop: '1.8mm',
-                                  maxHeight: '21.5mm',
+                                  marginTop: '1.3mm',
+                                  height: '18.5mm',
                                 }}
                               >
                                 {plato.pictogramas.map((pg, idx) => (
                                   <div
                                     key={`${pg.id}-${idx}`}
-                                    className="border border-black text-center bg-white flex flex-col items-center justify-between"
+                                    className="border border-black bg-white inline-flex items-center shrink-0"
                                     style={{
-                                      width: '17.5mm',
-                                      padding: '0.8mm',
-                                      borderRadius: '0.8mm',
+                                      gap: '1.5mm',
+                                      padding: '0.8mm 1.6mm',
+                                      borderRadius: '1mm',
                                       boxSizing: 'border-box',
+                                      height: '15.2mm',
                                     }}
                                   >
                                     <img
                                       src={pg.imageUrl}
                                       alt={pg.label}
                                       referrerPolicy="no-referrer"
-                                      className="picto-img-15mm mx-auto"
+                                      className="picto-img-15mm shrink-0"
                                       style={{
                                         maxHeight: `${BRAILLE_SPECS_MM.pictogramMaxHeightMm}mm`,
-                                        maxWidth: '15mm',
-                                        height: '13.5mm',
+                                        maxWidth: '13mm',
+                                        height: '13mm',
                                         width: 'auto',
                                         objectFit: 'contain',
                                       }}
                                     />
                                     <span
-                                      className="block w-full font-bold text-black leading-none truncate"
+                                      className="font-bold text-black whitespace-nowrap"
                                       style={{
-                                        fontSize: '6.5pt',
-                                        marginTop: '0.7mm',
+                                        fontSize: '14pt',
+                                        lineHeight: 1.05,
                                       }}
                                     >
                                       {pg.label}
@@ -475,14 +456,15 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                           >
                             <div className="flex-1 min-w-0">
                               <p
-                                className="font-bold uppercase tracking-wide text-slate-700 leading-none"
+                                className="font-bold uppercase tracking-wide text-black"
                                 style={{
-                                  fontSize: '6.5pt',
-                                  height: '2.5mm',
-                                  marginBottom: '0.5mm',
+                                  fontSize: '14pt',
+                                  lineHeight: 1.0,
+                                  height: '5.2mm',
+                                  marginBottom: '0.8mm',
                                 }}
                               >
-                                Sistema Braille
+                                Braille:
                               </p>
                               <BrailleSvg
                                 lines={wrappedBraille.map((row) => ({
@@ -496,7 +478,7 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                               />
                             </div>
 
-                            <div className="shrink-0 text-center">
+                            <div className="shrink-0 text-center" style={{ width: '16mm' }}>
                               <DishQrMini
                                 slug={comercio.slug}
                                 platoId={plato.id}
@@ -505,10 +487,14 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                                 showActions={false}
                               />
                               <span
-                                className="block font-bold text-black leading-none"
-                                style={{ fontSize: '6.5pt', marginTop: '0.7mm' }}
+                                className="block font-bold text-black"
+                                style={{
+                                  fontSize: '14pt',
+                                  lineHeight: 1.05,
+                                  marginTop: '0.8mm',
+                                }}
                               >
-                                QR Audio
+                                QR
                               </span>
                             </div>
                           </div>
@@ -516,28 +502,6 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                       );
                     })}
                   </div>
-
-                  {/* Pie de hoja compacto */}
-                  <footer
-                    className="border-t border-black flex items-center justify-between text-black shrink-0 mt-auto"
-                    style={{
-                      height: '4mm',
-                      paddingTop: '1mm',
-                      marginTop: '1mm',
-                      fontSize: '7pt',
-                      gap: '3mm',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <span>
-                      Ordenanza Municipal &ldquo;Carta o Menú Inclusivo&rdquo; —
-                      Vicuña Mackenna
-                    </span>
-                    <span className="shrink-0">
-                      Vigencia: {formatFechaAr(comercio.vigencia.fechaCaducidad)}{' '}
-                      · Hoja {pageIdx + 1}/{platosPages.length}
-                    </span>
-                  </footer>
                 </section>
               );
             })
@@ -565,30 +529,22 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
                 }}
               >
                 <div
-                  className="border-b-2 border-black flex items-end justify-between shrink-0"
+                  className="border-b-2 border-black flex items-center justify-between shrink-0"
                   style={{
                     paddingBottom: '1.5mm',
-                    marginBottom: '3.5mm',
+                    marginBottom: '3mm',
                     gap: '4mm',
                   }}
                 >
-                  <div>
-                    <h1
-                      className="font-bold text-black leading-tight"
-                      style={{ fontSize: '11.5pt' }}
-                    >
-                      {comercio.nombre} — Carta en Sistema Braille
-                    </h1>
-                    <p
-                      className="text-slate-700"
-                      style={{ fontSize: '7.5pt', marginTop: '0.5mm' }}
-                    >
-                      Alfabeto Braille Español — Formato A4
-                    </p>
-                  </div>
+                  <h1
+                    className="font-bold text-black truncate min-w-0"
+                    style={{ fontSize: '14pt', lineHeight: 1.1 }}
+                  >
+                    {comercio.nombre} — Carta Braille
+                  </h1>
                   <span
                     className="font-bold text-black shrink-0"
-                    style={{ fontSize: '8pt' }}
+                    style={{ fontSize: '14pt', lineHeight: 1.1 }}
                   >
                     Hoja {pageIdx + 1} de {brailleSheetPages.length}
                   </span>
@@ -612,94 +568,148 @@ export const A4PrintSuite: React.FC<A4PrintSuiteProps> = ({
         </div>
       )}
 
-      {/* MODO 3: OBLEA MUNICIPAL Y TARJETA QR DE MESA A4 */}
+      {/* MODO 3: OBLEA MUNICIPAL Y TARJETA QR DE MESA A4 (TEXTO >= 14 PT) */}
       {mode === 'oblea_qr' && (
         <section
-          className="a4-sheet mx-auto bg-white border border-slate-300 rounded-lg text-black"
+          className="a4-sheet-page mx-auto bg-white border border-slate-300 rounded-lg text-black flex flex-col justify-between"
           style={{
             width: '210mm',
             minHeight: '297mm',
-            padding: '10mm',
+            padding: '7mm 8mm',
             boxSizing: 'border-box',
+            fontFamily: 'Verdana, Helvetica, Arial, sans-serif',
           }}
         >
           {/* Oblea Principal */}
-          <div className="border-4 border-slate-900 rounded-2xl p-8 text-center space-y-5">
-            <p className="text-sm font-bold uppercase tracking-widest text-blue-800">
+          <div
+            className="border-4 border-slate-900 rounded-2xl text-center"
+            style={{ padding: '5mm 6mm' }}
+          >
+            <p
+              className="font-bold uppercase tracking-wider text-blue-900"
+              style={{ fontSize: '14pt', lineHeight: 1.2 }}
+            >
               Municipalidad de Vicuña Mackenna · Secretaría de Desarrollo Social
             </p>
-            <h1 className="text-3xl font-extrabold text-slate-950">
+            <h1
+              className="font-extrabold text-slate-950"
+              style={{ fontSize: '20pt', lineHeight: 1.15, marginTop: '2.5mm' }}
+            >
               ESTABLECIMIENTO GASTRONÓMICO INCLUSIVO
             </h1>
-            <p className="text-base text-slate-800 max-w-lg mx-auto">
+            <p
+              className="text-black mx-auto"
+              style={{
+                fontSize: '14pt',
+                lineHeight: 1.25,
+                marginTop: '2.5mm',
+                maxWidth: '165mm',
+              }}
+            >
               Este comercio cuenta con Carta y Menú Accesible con Pictogramas
               ARASAAC, Sistema Braille y Menú Digital con lectura en voz
               multilingüe (Ordenanza Municipal &ldquo;Carta o Menú
               Inclusivo&rdquo;).
             </p>
 
-            <div className="py-2">
-              <p className="text-2xl font-bold text-slate-900">
+            <div style={{ marginTop: '3mm' }}>
+              <p
+                className="font-bold text-black"
+                style={{ fontSize: '18pt', lineHeight: 1.15 }}
+              >
                 {comercio.nombre}
               </p>
-              <p className="text-sm text-slate-700">
+              <p
+                className="text-slate-900"
+                style={{ fontSize: '14pt', lineHeight: 1.2, marginTop: '1mm' }}
+              >
                 {comercio.rubro} · {comercio.direccion}
               </p>
             </div>
 
-            <div className="flex justify-center py-2">
+            <div className="flex justify-center" style={{ marginTop: '3mm', marginBottom: '3mm' }}>
               <QrCodeBlock
                 url={publicMenuUrl}
                 comercioNombre={comercio.nombre}
                 obleaNumero={comercio.obleaNumero}
-                size={240}
+                size={165}
                 showActions={false}
               />
             </div>
 
-            <div className="space-y-1">
-              <p className="text-base font-bold text-slate-900">
+            <div>
+              <p
+                className="font-bold text-black"
+                style={{ fontSize: '14pt', lineHeight: 1.2 }}
+              >
                 Escaneá el código QR para ver y escuchar la carta en tu idioma
               </p>
-              <p className="text-xs text-slate-600 font-mono-tabular break-all">
+              <p
+                className="text-slate-800 font-mono-tabular break-all"
+                style={{ fontSize: '14pt', lineHeight: 1.2, marginTop: '1mm' }}
+              >
                 {publicMenuUrl}
               </p>
             </div>
 
-            <div className="pt-4 border-t border-slate-300 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-700">
+            <div
+              className="border-t border-slate-400 flex flex-wrap items-center justify-between text-black font-semibold"
+              style={{
+                marginTop: '3mm',
+                paddingTop: '2.5mm',
+                gap: '3mm',
+                fontSize: '14pt',
+                lineHeight: 1.2,
+              }}
+            >
               <span>
-                Habilitado el: {formatFechaAr(comercio.fechaHabilitacion)}
+                Habilitado: {formatFechaAr(comercio.fechaHabilitacion)}
               </span>
               <span>Oblea Nº {comercio.obleaNumero}</span>
               <span>
-                Caducidad anual:{' '}
+                Vigencia hasta:{' '}
                 {formatFechaAr(comercio.vigencia.fechaCaducidad)}
               </span>
             </div>
           </div>
 
           {/* 2 Tarjetas recortables de mesa debajo */}
-          <div className="mt-8 grid grid-cols-2 gap-6 a4-avoid-break">
+          <div
+            className="grid grid-cols-2 a4-avoid-break"
+            style={{ marginTop: '4mm', gap: '4mm' }}
+          >
             {[1, 2].map((num) => (
               <div
                 key={num}
-                className="border-2 border-dashed border-slate-400 rounded-xl p-4 flex items-center gap-4"
+                className="border-2 border-dashed border-slate-500 rounded-xl flex items-center"
+                style={{ padding: '3mm', gap: '3mm' }}
               >
-                <QrCodeBlock
-                  url={publicMenuUrl}
-                  comercioNombre={comercio.nombre}
-                  size={108}
-                  showActions={false}
-                />
-                <div className="space-y-1 text-left">
-                  <p className="text-xs font-bold uppercase text-blue-800">
-                    Menú Digital con Voz
+                <div className="shrink-0">
+                  <QrCodeBlock
+                    url={publicMenuUrl}
+                    comercioNombre={comercio.nombre}
+                    size={84}
+                    showActions={false}
+                  />
+                </div>
+                <div className="text-left min-w-0">
+                  <p
+                    className="font-bold uppercase text-blue-900"
+                    style={{ fontSize: '14pt', lineHeight: 1.15 }}
+                  >
+                    Menú con Voz
                   </p>
-                  <p className="text-sm font-bold text-slate-900">
+                  <p
+                    className="font-bold text-black truncate"
+                    style={{ fontSize: '14pt', lineHeight: 1.15, marginTop: '1mm' }}
+                  >
                     {comercio.nombre}
                   </p>
-                  <p className="text-xs text-slate-700">
-                    Pictogramas · Sin TACC · Audio en varios idiomas
+                  <p
+                    className="text-black"
+                    style={{ fontSize: '14pt', lineHeight: 1.15, marginTop: '1mm' }}
+                  >
+                    Pictogramas · Sin TACC · Audio
                   </p>
                 </div>
               </div>
